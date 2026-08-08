@@ -1,0 +1,113 @@
+import Image from "next/image";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import { Reveal } from "@/components/motion/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { socialPosts } from "@/data/social";
+import { blurTone } from "@/lib/images";
+import { isPlaceholder, socialLinks } from "@/config/site";
+
+const formatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "long",
+});
+
+/**
+ * "Fresh off the brush" — designed cards from a file the client owns, not an
+ * embedded feed wall. No API token to expire and nothing to pay for.
+ */
+export function SocialFeed() {
+  return (
+    <section className="py-20 lg:py-28" aria-labelledby="social-heading">
+      <div className="shell">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <SectionHeading
+            eyebrow="Fresh off the brush"
+            title={<span id="social-heading">Work in progress, most weeks.</span>}
+            align="wide"
+            className="max-w-2xl"
+          />
+          {socialLinks.length > 0 && (
+            <div className="flex gap-3">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-ink/20 px-5 text-[0.9375rem] font-medium whitespace-nowrap text-ink transition-[border-color,color,background-color] duration-200 hover:border-accent hover:bg-accent-wash hover:text-accent"
+                >
+                  {link.label}
+                  <ArrowUpRight weight="light" className="size-4" />
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Edge-to-edge scroll strip on mobile, uneven grid on desktop.
+
+          ONE Reveal around the whole strip, not one per card.
+
+          Per-card reveals were a real bug on a phone: the strip scrolls
+          sideways, so cards past the right edge of the screen never intersect
+          the viewport, their observer never fires, and they sit at opacity 0.
+          Measured at 390px, four of the six stayed invisible — the strip read
+          as if James had posted twice rather than six times, and the partial
+          next card that invites the swipe was not there to see.
+
+          It cannot be fixed with a horizontal rootMargin either: six cards at
+          74vw span more than four screens, so any margin wide enough to catch
+          the last one is wide enough to fire the whole strip on page load
+          anyway. Revealing the strip as the single object it is does the same
+          job without the failure mode. */}
+      <Reveal>
+      <ul className="mt-12 flex snap-x snap-mandatory scroll-pl-[var(--shell-pad)] gap-4 overflow-x-auto px-[var(--shell-pad)] pb-2 lg:mx-auto lg:grid lg:max-w-[var(--spacing-shell)] lg:grid-cols-3 lg:gap-6 lg:overflow-visible">
+        {socialPosts.slice(0, 6).map((post, index) => (
+          <li
+            key={post.image}
+            className={`w-[74vw] shrink-0 snap-start sm:w-[46vw] lg:w-auto ${
+              index % 3 === 1 ? "lg:mt-12" : ""
+            }`}
+          >
+            {/* A card only becomes a link once there is somewhere real to send
+                people. The permalinks fall back to the profile URL, so while
+                that is unset every card was an anchor to "{{INSTAGRAM_URL}}" —
+                six dead links on the home page. */}
+            <Card href={isPlaceholder(post.permalink) ? undefined : post.permalink}>
+              <div className="relative aspect-square overflow-hidden rounded-[4px] bg-plaster">
+                <Image
+                  src={post.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) 30vw, 74vw"
+                  placeholder="blur"
+                  blurDataURL={blurTone(post.tone)}
+                  className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+                />
+                <span className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-paper/90 text-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <ArrowUpRight weight="light" className="size-4" />
+                </span>
+              </div>
+              <p className="mt-4 text-[0.9375rem] leading-relaxed text-ink-soft">{post.caption}</p>
+              <p className="mt-2 text-[0.8125rem] text-ink-mute">
+                {formatter.format(new Date(post.date))} · {post.network === "instagram" ? "Instagram" : "Facebook"}
+              </p>
+            </Card>
+          </li>
+        ))}
+      </ul>
+      </Reveal>
+    </section>
+  );
+}
+
+/** An anchor when there is a destination, a plain block when there is not. */
+function Card({ href, children }: { href?: string; children: React.ReactNode }) {
+  if (!href) return <div className="group block">{children}</div>;
+  return (
+    <a href={href} target="_blank" rel="noreferrer noopener" className="group block">
+      {children}
+    </a>
+  );
+}

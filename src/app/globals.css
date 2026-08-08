@@ -1,0 +1,1236 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   THE PAINT MEN — DESIGN TOKENS
+   Art direction: "Night Shift". A near-black ground, warm graphite surfaces,
+   and the client's logo orange used at full strength as the single accent.
+
+   WHY DARK. The logo orange is #f26522. On white it reaches about 3:1, so
+   white text on it fails AA and the light build had to carry TWO oranges — a
+   duller one that could hold a label and the real one for graphics only. On a
+   near-black ground that problem disappears: #f26522 hits ~6.3:1 against the
+   page, so the client's actual brand colour carries every button, link, focus
+   ring and accent moment, and buttons take near-black text rather than white.
+   One orange, used properly, instead of two used apologetically.
+
+   RADIUS RULE — there are exactly three radii on this site and no others:
+     • buttons / chips / pills ......... rounded-full        (--radius-pill)
+     • cards / images / media .......... 4px                 (--radius-card)
+     • form inputs / textareas ......... 8px                 (--radius-input)
+   If a new element needs a radius, it is one of these three. No exceptions.
+
+   COLOUR RULE — one accent carries 100% of UI chrome: every CTA, hover, focus
+   ring, active state and accent moment. The 5-colour sample-card palette below
+   exists ONLY inside swatch and gallery contexts and never appears as chrome.
+
+   SCRIM RULE — --color-scrim is true black and NEVER follows the theme. Text
+   laid over a photograph needs a dark ground whatever the surface behind it
+   is; using --color-ink for that was what made the scrims invert.
+   ========================================================================== */
+
+@theme {
+  /* Surfaces — warm near-blacks, locked site-wide */
+  --color-paper: #0c0c0e; /* the page ground */
+  --color-plaster: #151518; /* raised panel */
+  --color-plaster-deep: #1e1e23; /* deeper well, image backing */
+  --color-hairline: #2b2b32;
+
+  /* Ink, inverted — measured against --color-paper */
+  --color-ink: #f7f6f4; /* ~18:1 */
+  --color-ink-soft: #b8b6b1; /* ~9.3:1 */
+  --color-ink-mute: #8b8983; /* ~5.4:1 — AA for body and below */
+
+  /* Brand orange, straight off the logo. ONE weight now: on this ground it
+     reads at ~6.3:1, so it carries labels, links and chrome without help.
+     Anything sitting ON the orange takes --color-on-accent, never white —
+     white on #f26522 is ~2.9:1 and fails. */
+  --color-accent: #f26522;
+  --color-accent-bright: #ff8248; /* hover / graphic lift only */
+  --color-accent-deep: #c94f14; /* pressed states, borders */
+  --color-accent-ink: #f89b62; /* softer orange for long text and errors */
+  /* The alternating section ground, and the reason the site reads warm rather
+     than merely dark. It is an orange-tinted near-black, not a neutral one, and
+     every text pair measures BETTER on it than on the neutral plaster it
+     replaced: ink 17.11:1, ink-soft 9.12:1, ink-mute 5.28:1, accent 5.86:1.
+     --color-plaster stays the RAISED PANEL token — cards, image backings and
+     skeletons — so this is not a find-and-replace. */
+  --color-accent-wash: #1d1109;
+  --color-on-accent: #0c0c0e; /* what sits on top of the orange */
+
+  /* Overlays over photographs. Theme-independent, always black. */
+  --color-scrim: #000000;
+
+  /* Sample-card palette — swatch/gallery contexts only, never UI chrome */
+  --color-swatch-sage: #8a9a7b;
+  --color-swatch-terracotta: #b4613d;
+  --color-swatch-ochre: #c2932c;
+  --color-swatch-slate: #59656f;
+  --color-swatch-blush: #d3a7a0;
+
+  /* Type — three voices. See src/app/fonts.ts for what each one is for. */
+  --font-display: var(--ff-display), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--ff-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--ff-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Radius system — the only three radii that exist */
+  --radius-card: 4px;
+  --radius-input: 8px;
+  --radius-pill: 9999px;
+
+  /* Motion — one shared curve. Confident, physical, settles without bounce. */
+  --ease-coat: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Editorial rhythm */
+  --spacing-gutter: 1.25rem;
+  --spacing-shell: 88rem;
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --shell-pad: clamp(1.25rem, 5vw, 4.5rem);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  /* Display face carries tight optical tracking at every size it is used. */
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Descender reserve: italic display words with y/g/j/p/q must never clip. */
+  h1,
+  h2 {
+    padding-bottom: 0.06em;
+  }
+
+  /* Italic faces live in their own families so they stay off the preload
+     critical path. Route emphasised text to the right one: display italic
+     inside headings, body italic everywhere else. */
+  :is(em, i, .italic) {
+    font-family: var(--ff-body-italic), var(--font-body);
+  }
+  :is(h1, h2, h3, .font-display) :is(em, i, .italic),
+  .font-display.italic,
+  h1.italic,
+  h2.italic,
+  h3.italic {
+    /* Instrument Serif Italic. Three optical corrections, all because this is
+       a serif set inside a grotesque line rather than an italic of it:
+
+       - It runs visibly smaller at the same px than Bricolage, so 1.06em
+         brings the two to the same apparent size.
+       - The display's -0.02em tracking closes a serif's joins up; italic
+         serifs want air between the strokes, so it is relaxed to -0.005em.
+       - font-weight 400, hard. A variable-weight heading that inherits 600
+         onto a single-weight serif gets a synthesised bold, and a faux-bold
+         high-contrast italic is the most obviously wrong thing on a page. */
+    font-family: var(--ff-display-italic), ui-serif, Georgia, serif;
+    font-size: 1.06em;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  /* One focus treatment site-wide, in the accent colour. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Skip link */
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 200;
+    transform: translateY(-200%);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    transition: transform 200ms var(--ease-coat);
+  }
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+
+@utility shell {
+  width: 100%;
+  max-width: var(--spacing-shell);
+  margin-inline: auto;
+  padding-inline: var(--shell-pad);
+}
+
+/* Tape line — the only divider style on the site. A masked edge, not an <hr>.
+   Slight opacity fall-off at each end reads as a lifted strip of tape. */
+@utility tape-line {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-hairline) 8%,
+    var(--color-hairline) 92%,
+    transparent 100%
+  );
+}
+
+/* Prose measure for editorial copy */
+@utility measure {
+  max-width: 65ch;
+}
+
+/* The eyebrow. Every section on the site opens with one, which makes it the
+   most repeated piece of type here and the right place to spend a typeface.
+   Monospace, tracked out, with the figures already tabular — so an index, a
+   count and a label all set in the same slot line up with each other. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Figures that sit in a column and must align: stat rails, menu indices,
+   gallery counts. */
+@utility figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Elevation on a near-black ground. A drop shadow does almost nothing here —
+   what reads as "lifted" is a hairline catching light along the top edge plus a
+   deep shadow beneath, so both are used together. */
+@utility shadow-lift {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 12px 32px -12px rgb(0 0 0 / 0.7);
+}
+@utility shadow-lift-deep {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 24px 56px -18px rgb(0 0 0 / 0.85);
+}
+/* The orange glow under a primary button. Was still tinted Wet Paint Blue from
+   the original brief — invisible on white, obvious the moment the ground went
+   black. */
+@utility shadow-accent {
+  box-shadow: 0 14px 34px -14px rgb(242 101 34 / 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   Reveal — the scroll-in used across every section. Transform and opacity
+   only. The reduced-motion block below collapses it to an instant appearance.
+   -------------------------------------------------------------------------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 600ms var(--ease-coat),
+    transform 600ms var(--ease-coat);
+}
+.reveal[data-reveal="in"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* A reveal starts at opacity 0 and is brought in by an IntersectionObserver, so
+   without JavaScript the observer never runs and the content stays invisible
+   forever — measured at 30 blocks on the home page alone.
+
+   Nobody browses with JavaScript off on purpose here, but a bundle that fails
+   to load is an ordinary network event, and the failure mode is a page that
+   renders its header and almost nothing else. The <noscript> block in the
+   document head turns this rule on, which costs nothing when scripts do run. */
+.no-js .reveal {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* --------------------------------------------------------------------------
+   Roller stipple — the single page texture.
+   Applied once, fixed, above content, non-interactive, ~3% opacity.
+   Never on a scrolling container.
+   -------------------------------------------------------------------------- */
+
+.roller-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+
+/* --------------------------------------------------------------------------
+   SIGNATURE INTERACTIONS, IN CSS
+   -------------------------------------------------------------------------- */
+
+/* Registered so the hero mask position can be interpolated by a keyframe. */
+@property --wipe {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* 1 — Hero brush reveal. The mask is 220% of the line's width with its opaque
+   half to the right, so sliding it 0% -> 100% drags the bristled edge across
+   the words. Geometry identical to the version this replaces. */
+.hero-line {
+  --wipe: 0%;
+  mask-image: var(--brush-mask);
+  -webkit-mask-image: var(--brush-mask);
+  mask-size: 220% 100%;
+  -webkit-mask-size: 220% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: var(--wipe) 0;
+  -webkit-mask-position: var(--wipe) 0;
+  animation: hero-wipe 0.9s var(--ease-coat) both;
+}
+@keyframes hero-wipe {
+  to {
+    --wipe: 100%;
+  }
+}
+
+/* 2 — Roller pass. Scroll-linked through a view timeline: the band is carried
+   off to the right as the section rises, laying it down behind. */
+.roller-band {
+  transform: translateX(0) skewX(-1.2deg);
+}
+@supports (animation-timeline: view()) {
+  .roller-band {
+    animation: roller-pass linear both;
+    animation-timeline: view(block);
+    animation-range: entry 4% entry 78%;
+  }
+}
+/* Without view timelines the band would sit over the section forever. */
+@supports not (animation-timeline: view()) {
+  .roller-band {
+    display: none;
+  }
+}
+@keyframes roller-pass {
+  to {
+    transform: translateX(102%) skewX(0deg);
+  }
+}
+
+/* 3 — Nav brush underline. pathLength="1" lets one dash unit cover the path. */
+.brush-underline path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 0.42s var(--ease-coat),
+    opacity 0.08s linear;
+}
+.brush-underline path:nth-child(2) {
+  transition-delay: 0.05s;
+}
+.nav-link:hover .brush-underline path,
+.nav-link:focus-visible .brush-underline path,
+.nav-link[data-active="true"] .brush-underline path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+/* 4 — The drip. Runs once as the heading arrives, then it is finished. */
+.drip {
+  transform-origin: 7px 0;
+  transform: scaleY(1);
+}
+@supports (animation-timeline: view()) {
+  .drip {
+    animation: drip 0.6s cubic-bezier(0.34, 0.9, 0.4, 1) both;
+    animation-timeline: view(block);
+    animation-range: entry 55% entry 85%;
+  }
+}
+@keyframes drip {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* 7 — Scroll paint level. */
+.scroll-level {
+  transform-origin: left;
+  transform: scaleX(0);
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-level {
+    animation: scroll-level linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+/* A decorative progress bar is better absent than permanently empty. */
+@supports not (animation-timeline: scroll()) {
+  .scroll-level {
+    display: none;
+  }
+}
+@keyframes scroll-level {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+
+/* 6 — Paint gauge, and the success tick. */
+.gauge-fill {
+  transition: y 0.55s var(--ease-coat);
+}
+.gauge-track {
+  transition: transform 0.55s var(--ease-coat);
+}
+.paint-tick-disc {
+  transform-origin: 32px 32px;
+  animation: tick-disc 0.42s var(--ease-coat) both;
+}
+.paint-tick-mark {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: tick-mark 0.4s var(--ease-coat) 0.22s both;
+}
+@keyframes tick-disc {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+@keyframes tick-mark {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The submit button fills as the request goes out. */
+.sending-fill {
+  width: 0%;
+  animation: sending 1.4s linear both;
+}
+@keyframes sending {
+  to {
+    width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Desktop nav condense.
+
+   Scroll-linked where the browser supports it, so it tracks the reader's hand
+   exactly as the motion-value version did. Where it does not, a sentinel
+   toggles data-condensed and the same properties transition — animated, not a
+   jump at a threshold.
+   -------------------------------------------------------------------------- */
+
+/* NOTE: these backgrounds are literal rgb() rather than var(--color-paper),
+   because a @keyframes cannot interpolate a bare custom property in every
+   engine. That means they DO NOT follow the theme automatically — they were
+   still the old light paper after the site went black, so the header turned
+   white the moment anyone scrolled. If --color-paper changes, change these. */
+/* HONEST NOTE: the condense animates HEIGHT and BACKDROP-FILTER, which are not
+   composited properties and are the two exceptions to the transform/opacity
+   rule the rest of this file keeps. It is deliberate. The bar has to give its
+   height back to the document as it shrinks — a transform would leave the
+   original 96px reserved and the page would sit in a permanent gap — and there
+   is no compositable way to fade a backdrop blur in. It runs on two elements in
+   a fixed header, off the main thread wherever scroll timelines are supported,
+   and Lighthouse measures CLS 0 with it. Everything else on the site really is
+   transform and opacity only. */
+.nav-shell {
+  height: 96px;
+  background-color: rgb(12 12 14 / 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+}
+.nav-chrome {
+  opacity: 0;
+}
+
+@supports (animation-timeline: scroll()) {
+  .nav-shell {
+    animation: nav-condense linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 80px;
+  }
+  .nav-chrome {
+    animation: nav-chrome linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 40px 80px;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .nav-shell {
+    transition:
+      height 0.3s var(--ease-coat),
+      background-color 0.3s var(--ease-coat),
+      backdrop-filter 0.3s var(--ease-coat);
+  }
+  .nav-chrome {
+    transition: opacity 0.3s var(--ease-coat);
+  }
+  [data-condensed="true"] .nav-shell {
+    height: 76px;
+    background-color: rgb(12 12 14 / 0.96);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  }
+  [data-condensed="true"] .nav-chrome {
+    opacity: 1;
+  }
+}
+
+@keyframes nav-condense {
+  to {
+    height: 76px;
+    background-color: rgb(12 12 14 / 0.96);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  }
+}
+@keyframes nav-chrome {
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Card edge. A 2px band of brand orange along the top of a card, drawn in from
+   the left on hover or keyboard focus.
+
+   It replaces the usual "border goes lighter" hover, which on a near-black
+   ground is almost invisible. scaleX on a pseudo-element, so nothing about the
+   card's box changes and there is no reflow — the border-colour transition that
+   used to carry this had to animate a paint property to say much at all.
+   -------------------------------------------------------------------------- */
+
+.card-edge {
+  position: relative;
+}
+.card-edge::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.42s var(--ease-coat);
+}
+.card-edge:hover::after,
+.card-edge:focus-visible::after,
+.card-edge:focus-within::after {
+  transform: scaleX(1);
+}
+
+/* --------------------------------------------------------------------------
+   Section rule. Every section on the site opens with an eyebrow over a hairline,
+   so that rule is the one gesture repeated most — which makes it the right place
+   to put the site's motion signature.
+
+   It draws itself left-to-right as the section arrives, with a short lead of
+   brand orange running ahead of the hairline like the leading edge of a stroke.
+   scaleX on a view() timeline: composited, tied to the reader's own scrolling
+   rather than a timer, and it cannot shift layout because the rule already
+   occupies its 1px.
+   -------------------------------------------------------------------------- */
+
+.section-rule {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.section-rule-lead {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+@supports (animation-timeline: view()) {
+  .section-rule {
+    animation: rule-draw 1s var(--ease-coat) both;
+    animation-timeline: view(block);
+    animation-range: entry 10% cover 26%;
+  }
+  .section-rule-lead {
+    animation: rule-draw 1s var(--ease-coat) both;
+    animation-timeline: view(block);
+    animation-range: entry 8% cover 18%;
+  }
+}
+@supports not (animation-timeline: view()) {
+  .section-rule,
+  .section-rule-lead {
+    transform: scaleX(1);
+  }
+}
+@keyframes rule-draw {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The bar's base rule. A hairline of brand orange that draws itself in from the
+   centre as the bar condenses — the site's structural signature, not an
+   ornament: it is the same gesture as the rule under every section eyebrow.
+
+   scaleX only, so it composites, and it sits on its own layer so it cannot
+   shift anything.
+   -------------------------------------------------------------------------- */
+
+.nav-rule {
+  transform: scaleX(0);
+  transform-origin: center;
+}
+@supports (animation-timeline: scroll()) {
+  .nav-rule {
+    animation: nav-rule linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 30px 110px;
+  }
+}
+@supports not (animation-timeline: scroll()) {
+  .nav-rule {
+    transition: transform 0.45s var(--ease-coat);
+  }
+  [data-condensed="true"] .nav-rule {
+    transform: scaleX(1);
+  }
+}
+@keyframes nav-rule {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The mobile bar earns its own chrome the same way, on the same timeline.
+
+   It does not condense — 5.25rem is already thumb-sized and taking height away
+   would only shift the page under the reader's finger. What it needs is a
+   ground: the wordmark floats over the hero at rest, and the moment anything
+   scrolls under it the mark and the toggle become unreadable against
+   photographs. Background and hairline fade in over the first 72px.
+   -------------------------------------------------------------------------- */
+
+.mobile-bar {
+  background-color: rgb(12 12 14 / 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-bottom: 1px solid transparent;
+}
+
+@supports (animation-timeline: scroll()) {
+  .mobile-bar {
+    animation: mobile-bar linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 20px 72px;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .mobile-bar {
+    transition:
+      background-color 0.3s var(--ease-coat),
+      backdrop-filter 0.3s var(--ease-coat),
+      border-color 0.3s var(--ease-coat);
+  }
+  [data-condensed="true"] .mobile-bar {
+    background-color: rgb(12 12 14 / 0.96);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border-bottom-color: var(--color-hairline);
+  }
+}
+
+@keyframes mobile-bar {
+  to {
+    background-color: rgb(12 12 14 / 0.96);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border-bottom-color: var(--color-hairline);
+  }
+}
+
+/* Open, the bar sits on the flooded panel and must show it through. Wins over
+   both branches above, and over the reduced-motion rest state. */
+.mobile-bar[data-menu-open="true"] {
+  animation: none;
+  background-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+}
+
+
+/* --------------------------------------------------------------------------
+   Enterprise nav: a utility strip above the main bar that gives its height
+   back to the page as you scroll, and the mega-menu panel beneath.
+   -------------------------------------------------------------------------- */
+
+.nav-utility {
+  height: 2.375rem;
+  opacity: 1;
+  overflow: hidden;
+}
+@supports (animation-timeline: scroll()) {
+  .nav-utility {
+    animation: nav-utility linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 80px;
+  }
+}
+@supports not (animation-timeline: scroll()) {
+  .nav-utility {
+    transition:
+      height 0.3s var(--ease-coat),
+      opacity 0.2s var(--ease-coat);
+  }
+  [data-condensed="true"] .nav-utility {
+    height: 0;
+    opacity: 0;
+  }
+}
+@keyframes nav-utility {
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+/* The panel drops from under the bar, clipped rather than faded.
+   The ground is deliberately NOT the page colour: it is a shade above it, so
+   the panel reads as a surface laid over the site rather than a hole cut in
+   it, and the shadow beneath it has something to fall from.
+
+   Opaque, deliberately. It was 97% and then 98%, and both ghosted: the hero
+   headline behind it is near-white on near-black, so even 2% of it carried
+   enough luminance to read as text showing through the menu. On a dark
+   surface a translucent panel is not a soft one, it is a dirty one. */
+.mega-panel {
+  transform-origin: top;
+  background-color: #121215;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 36px 70px -34px rgb(0 0 0 / 0.9);
+  transition:
+    opacity 0.24s var(--ease-coat),
+    transform 0.34s var(--ease-coat),
+    visibility 0.34s;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scaleY(0.98);
+}
+.mega-panel[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+/* The lit corner. Two ellipses — brand orange at the top-left where the eye
+   lands first, a far weaker one trailing right — at opacities low enough to
+   warm the black without ever competing with the type over it. */
+.mega-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      62rem 24rem at 4% -16%,
+      rgb(242 101 34 / 0.22) 0%,
+      rgb(242 101 34 / 0.07) 44%,
+      transparent 74%
+    ),
+    radial-gradient(40rem 20rem at 94% 6%, rgb(242 101 34 / 0.07) 0%, transparent 70%);
+}
+
+.mega-item {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.34s var(--ease-coat),
+    transform 0.34s var(--ease-coat);
+}
+.mega-panel[data-open="true"] .mega-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* A mega-menu row. Three things happen on hover and they are staggered by
+   their own durations rather than by delays: the wash wipes in from the left,
+   the rail fills downward, and the row steps right by the width of the rail so
+   the text appears to be pushed by it. */
+.mega-row {
+  position: relative;
+  display: block;
+  padding: 0.9rem 0.75rem 0.95rem 1.1rem;
+  transition: transform 0.4s var(--ease-coat);
+}
+.mega-row-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.42s var(--ease-coat);
+}
+.mega-row-wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(242 101 34 / 0.13) 0%, rgb(242 101 34 / 0) 88%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.42s var(--ease-coat);
+}
+.mega-row:hover,
+.mega-row:focus-visible {
+  transform: translateX(4px);
+}
+.mega-row:hover .mega-row-rail,
+.mega-row:focus-visible .mega-row-rail,
+.mega-row:hover .mega-row-wash,
+.mega-row:focus-visible .mega-row-wash {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-utility {
+    animation: none;
+  }
+  .mega-panel,
+  .mega-item,
+  .mega-row,
+  .mega-row-rail,
+  .mega-row-wash {
+    transition: none;
+  }
+  .mega-row:hover,
+  .mega-row:focus-visible {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Headline rise. Every section heading comes up out of the rule above it,
+   masked rather than faded — the words arrive edge-first, the way the hero
+   wipe does, so the two read as the same gesture at two scales.
+
+   On a view() timeline, so it is tied to the reader's own scrolling and needs
+   no observer. Both the clip and the travel are on the SAME element and the
+   same timeline, which is what keeps them exactly in step: a fade plus a
+   separate transform drifts apart on a slow scroll and reads as two effects.
+
+   Guarded by @supports. Where view timelines are unsupported the heading is
+   simply present — it is never hidden waiting for something that will not run,
+   which is the failure mode that makes scroll animation dangerous for text.
+   -------------------------------------------------------------------------- */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .headline-rise {
+      animation: headline-rise 1s var(--ease-coat) both;
+      animation-timeline: view(block);
+      animation-range: entry 8% cover 22%;
+    }
+  }
+}
+
+@keyframes headline-rise {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(0.32em);
+  }
+  to {
+    clip-path: inset(-0.35em 0 -0.25em 0);
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Frame reveal. A photograph uncovers itself upward as it enters, and settles
+   back from a slight overscale — the picture arrives rather than appearing.
+
+   The clip is on the FRAME and the scale on the picture inside it, so the two
+   cannot fight: scaling a clipped element moves the clip with it and the wipe
+   edge slides, which is what makes most versions of this look loose.
+   -------------------------------------------------------------------------- */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .frame-reveal {
+      animation: frame-uncover 1s var(--ease-coat) both;
+      animation-timeline: view(block);
+      animation-range: entry 4% cover 20%;
+    }
+    .frame-reveal > img,
+    .frame-reveal > picture > img {
+      animation: frame-settle 1s var(--ease-coat) both;
+      animation-timeline: view(block);
+      animation-range: entry 4% cover 26%;
+    }
+  }
+}
+
+@keyframes frame-uncover {
+  from {
+    clip-path: inset(18% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes frame-settle {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Hero parallax. The frame is the window; the photograph moves behind it.
+
+   The image is oversized to 118% and travels from -7% to +7% of that overhang
+   as the page scrolls, so the frame is never uncovered at either end of the
+   range. Driven by scroll position rather than a timer, and only ever a
+   transform on a composited layer.
+
+   Applied to a WRAPPER around the image, never to the image itself: next/image
+   with `fill` writes position/inset/width/height as inline styles, and an
+   inline style beats a class, so the overhang set here would be dropped on the
+   floor and the travel would uncover the frame. The wrapper carries the size
+   (in the markup, where it belongs) and this carries only the movement.
+   -------------------------------------------------------------------------- */
+
+.hero-parallax {
+  will-change: transform;
+}
+
+@supports (animation-timeline: view()) {
+  .hero-parallax {
+    animation: hero-drift linear both;
+    animation-timeline: view(block);
+    /* cover, so the full travel maps to the whole time the frame is on
+       screen — entry-only ranges finish the movement before the reader has
+       scrolled far enough to notice it happening. */
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+@keyframes hero-drift {
+  from {
+    transform: translate3d(0, 4%, 0);
+  }
+  to {
+    transform: translate3d(0, -4%, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Orange plane. A full-height section on brand orange.
+
+   Flat #f26522 across a whole screen is a lot of one colour, and it flattens:
+   the eye reads it as a printed swatch rather than a wall. Every layer here
+   LIGHTENS towards --color-accent-bright — two soft corner lifts and a fine
+   brushed diagonal — because the ink on this ground is near-black, and
+   darkening it would eat the 6.2:1 the whole section depends on. Same
+   construction as the mobile flood menu, and for the same reason.
+   -------------------------------------------------------------------------- */
+
+.orange-plane {
+  background-color: var(--color-accent);
+  background-image:
+    radial-gradient(58rem 34rem at 88% -10%, rgb(255 130 72 / 0.5) 0%, transparent 62%),
+    radial-gradient(46rem 32rem at -8% 86%, rgb(255 130 72 / 0.3) 0%, transparent 66%),
+    repeating-linear-gradient(
+      118deg,
+      rgb(255 255 255 / 0.04) 0 1px,
+      rgb(255 255 255 / 0) 1px 10px
+    );
+}
+
+/* --------------------------------------------------------------------------
+   Trade marquee. A full-bleed orange band whose words track the reader's own
+   scrolling rather than a timer. See TradeMarquee.tsx for why.
+   -------------------------------------------------------------------------- */
+
+.marquee-band {
+  /* The words enter and leave rather than being sliced off at the viewport
+     edge. Masked, not overlaid with gradients: an overlay would have to be the
+     band's exact colour, and this band's colour is the one thing about it that
+     is going to be changed one day. */
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marquee-track {
+  /* -50% is exactly one of the two identical copies, which is what makes the
+     loop seamless. Anything else shows a jump at the wrap. */
+  will-change: transform;
+}
+
+@supports (animation-timeline: scroll()) {
+  .marquee-track {
+    animation: marquee-run linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .marquee-track {
+    animation: marquee-run 28s linear infinite;
+  }
+}
+
+@keyframes marquee-run {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile paint-flood menu. The accent expands from the toggle's own position.
+   -------------------------------------------------------------------------- */
+
+.flood-panel {
+  clip-path: circle(0px at calc(100% - 2.6rem) 2.55rem);
+  transition: clip-path 0.5s var(--ease-coat);
+
+  /* A mixed surface rather than a flat fill. Every layer here LIGHTENS —
+     two soft lifts towards --color-accent-bright and a fine brushed diagonal —
+     because the ink on this panel is near-black. Darkening the ground would
+     eat the contrast the whole menu depends on, so nothing does. The base
+     stays exactly --color-accent, the pair the contrast audit measures.
+
+     The background paints against the panel's own box, not its scrolled
+     content, so the wash stays put while the links move under it. */
+  background-color: var(--color-accent);
+  background-image:
+    radial-gradient(46rem 32rem at 96% -8%, rgb(255 130 72 / 0.62) 0%, transparent 60%),
+    radial-gradient(36rem 30rem at -14% 76%, rgb(255 130 72 / 0.34) 0%, transparent 64%),
+    repeating-linear-gradient(
+      118deg,
+      rgb(255 255 255 / 0.045) 0 1px,
+      rgb(255 255 255 / 0) 1px 9px
+    );
+}
+.flood-panel[data-open="true"] {
+  clip-path: circle(150vmax at calc(100% - 2.6rem) 2.55rem);
+}
+.flood-item {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.44s var(--ease-coat),
+    transform 0.44s var(--ease-coat);
+}
+.flood-panel[data-open="true"] .flood-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* Each menu line rises out of the rule above it. The <li> clips, the <a>
+   travels — a mask, not a fade, so the words arrive edge-first the way the
+   hero wipe does. */
+.flood-row {
+  transform: translateY(110%);
+  transition: transform 0.62s var(--ease-coat);
+}
+.flood-panel[data-open="true"] .flood-row {
+  transform: none;
+}
+
+/* Pressed state, in the menu's own ink. Touch has no hover, so this is :active
+   led — but hover and focus get it too, for the narrow desktop window and for
+   anyone tabbing through. */
+.flood-rail {
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--color-on-accent);
+  transform: scaleY(0);
+  transition: transform 0.36s var(--ease-coat);
+}
+.flood-row:active .flood-rail,
+.flood-row:hover .flood-rail,
+.flood-row:focus-visible .flood-rail {
+  transform: none;
+}
+/* The page you are on. Same rail, already drawn — so the pressed state and the
+   current state are one mark rather than two competing ones. */
+.flood-rail-on {
+  transform: none;
+}
+
+/* Toggle: three brush strokes that morph into an X. */
+.toggle-bar {
+  transition:
+    width 0.36s var(--ease-coat),
+    transform 0.36s var(--ease-coat),
+    opacity 0.26s var(--ease-coat);
+}
+
+/* Sticky action bar, hidden while reading down the page. */
+.action-bar {
+  transition: transform 0.32s var(--ease-coat);
+}
+.action-bar[data-hidden="true"] {
+  transform: translateY(140px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Every one of the above collapses to its finished state. */
+  .hero-line {
+    --wipe: 100%;
+    animation: none;
+  }
+  .roller-band,
+  .scroll-level {
+    display: none;
+  }
+  /* The band holds still. Every word is already on screen at offset 0, so
+     nothing is hidden by stopping it. */
+  .marquee-track {
+    animation: none;
+    transform: none;
+  }
+  /* The photograph sits centred in its frame, still oversized so the frame is
+     covered, with no travel at all. */
+  .hero-parallax {
+    animation: none;
+    transform: none;
+  }
+  .drip {
+    animation: none;
+    transform: scaleY(1);
+  }
+  .flood-panel[data-open="true"] .flood-item {
+    opacity: 1;
+    transform: none;
+  }
+  .flood-row {
+    transform: none;
+    transition: none;
+  }
+  .flood-rail {
+    transition: none;
+  }
+  .paint-tick-mark {
+    stroke-dashoffset: 0;
+  }
+  /* A scroll-linked condense is still movement, so the bar simply rests in its
+     condensed state — legible over any content, and completely static. */
+  .nav-shell {
+    animation: none;
+    height: 76px;
+    background-color: rgb(12 12 14 / 0.96);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  }
+  .nav-chrome {
+    animation: none;
+    opacity: 1;
+  }
+  .nav-rule,
+  .section-rule,
+  .section-rule-lead {
+    animation: none;
+    transform: scaleX(1);
+  }
+  /* The card edge is a hover state, not an entrance — it simply appears. */
+  .card-edge::after {
+    transition: none;
+  }
+  .mobile-bar {
+    animation: none;
+    background-color: rgb(12 12 14 / 0.96);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border-bottom-color: var(--color-hairline);
+  }
+  .sending-fill {
+    width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — every signature animation collapses to its finished state.
+   Content is simply visible. Non-negotiable.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  /* Revealed content is simply present, whether or not the observer fires. */
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

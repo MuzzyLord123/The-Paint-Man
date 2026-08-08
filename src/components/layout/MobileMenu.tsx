@@ -1,0 +1,418 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowUpRight, Clock, EnvelopeSimple, Lock, Phone } from "@phosphor-icons/react/dist/ssr";
+import { Wordmark } from "@/components/brand/Wordmark";
+import { CTA_HREF, CTA_LABEL, site, socialLinks } from "@/config/site";
+import { NOT_BUILT_LABEL, isBuilt, previewMode } from "@/config/preview";
+import { primaryNav } from "@/lib/nav";
+import { featuredProjects } from "@/data/projects";
+import { blurTone } from "@/lib/images";
+import Image from "next/image";
+
+const menuLinks = [...primaryNav, { href: "/contact", label: "Contact" }];
+
+/**
+ * Mobile navigation (<1024px).
+ *
+ * The toggle is three brush strokes that morph into an X. Opening floods the
+ * screen with accent colour from the toggle itself — a clip-path circle
+ * expanding out of the button — then the oversized links stagger up from below.
+ * Closing reverses the flood. Scroll is locked, focus is trapped, Escape exits.
+ */
+export function MobileMenu() {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  const close = useCallback(() => setOpen(false), []);
+
+  // Route change closes the menu.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Scroll lock + Escape + focus trap, all live only while open.
+  useEffect(() => {
+    if (!open) return;
+
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = "hidden";
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        toggleRef.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !panelRef.current) return;
+
+      /* The close toggle lives in the header row, a SIBLING of the panel, so
+         querying the panel alone left it out of the cycle: a keyboard user
+         could open the menu but never tab to the visible X, and only Escape
+         got them out. It is prepended rather than appended because it sits
+         above the links on screen, and a focus order that disagrees with the
+         reading order is its own bug. */
+      const inPanel = [
+        ...panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ];
+      const focusable = toggleRef.current ? [toggleRef.current, ...inPanel] : inPanel;
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || active === panelRef.current)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    const focusTimer = window.setTimeout(() => panelRef.current?.focus(), 60);
+
+    return () => {
+      root.style.overflow = previous;
+      document.removeEventListener("keydown", onKeyDown);
+      window.clearTimeout(focusTimer);
+    };
+  }, [open, close]);
+
+  return (
+    <div className="lg:hidden">
+      {/* One toggle, not two. The header row sits above the flood panel in the
+          same stacking context, so it inverts to white rather than being
+          duplicated underneath. */}
+      <div
+        data-menu-open={open}
+        className="mobile-bar shell relative z-[96] flex h-[5.25rem] items-center justify-between"
+      >
+        <Wordmark onAccent={open} />
+        <BrushToggle
+          ref={toggleRef}
+          open={open}
+          onDark={open}
+          onClick={() => setOpen((v) => !v)}
+        />
+      </div>
+
+      <>
+          <div
+            ref={panelRef}
+            id="mobile-menu"
+            tabIndex={-1}
+            /* Mounted at all times so opening and closing are one transition
+               run in both directions — but only a dialog while it is open. */
+            role={open ? "dialog" : undefined}
+            aria-modal={open ? true : undefined}
+            aria-label="Menu"
+            aria-hidden={!open}
+            data-open={open}
+            inert={!open}
+            /* Scrollable, because the panel is taller than a short handset.
+               Five links at display size plus the work strip plus the contact
+               block runs past 844px, and the page behind is scroll-locked — so
+               without this the hours and the social links are unreachable on
+               anything smaller than a large phone. */
+            className="flood-panel fixed inset-0 z-[95] flex min-h-[100dvh] flex-col overflow-y-auto overscroll-contain outline-none"
+          >
+            {/* Reserves the bar's height. It blurs rather than covers: the
+                panel's ground is a gradient, so an opaque band would have to
+                match it exactly and would show as a seam the moment either
+                changed. Blurring what passes underneath and fading out at the
+                bottom edge keeps the wordmark legible with nothing to match.
+                Inside the panel, so the flood still clips the two as one. */}
+            <div
+              className="sticky top-0 z-10 h-[5.25rem] shrink-0 backdrop-blur-md [mask-image:linear-gradient(to_bottom,#000_62%,transparent_100%)]"
+              aria-hidden="true"
+            />
+
+            <nav aria-label="Mobile" className="shell flex flex-col pb-5">
+              <p
+                className="flood-item flex items-center justify-between pb-3 eyebrow text-on-accent/85"
+                style={{ transitionDelay: "0.14s" }}
+              >
+                <span>Menu</span>
+                <span>{site.years} years · {site.town}</span>
+              </p>
+
+              {previewMode && (
+                <p
+                  className="flood-item mb-4 flex items-start gap-2.5 rounded-[4px] border border-on-accent/30 bg-on-accent/10 px-3.5 py-3 text-[0.8125rem] leading-snug text-on-accent"
+                  style={{ transitionDelay: "0.16s" }}
+                >
+                  <Lock weight="light" aria-hidden="true" className="mt-px size-4 shrink-0" />
+                  <span>
+                    This is a preview. Home and both galleries are built — the greyed pages are
+                    part of the full site.
+                  </span>
+                </p>
+              )}
+
+              <ul className="border-t border-on-accent/25">
+                {menuLinks.map((link, index) => {
+                  /* Home is "/" and would otherwise match every path under it,
+                     so it is compared exactly. */
+                  const current =
+                    link.href === "/"
+                      ? pathname === "/"
+                      : pathname === link.href || pathname.startsWith(`${link.href}/`);
+
+                  if (!isBuilt(link.href)) {
+                    return (
+                      <li
+                        key={link.href}
+                        className="flood-line overflow-hidden border-b border-on-accent/25"
+                      >
+                        <span
+                          aria-disabled="true"
+                          style={{ transitionDelay: `${0.18 + index * 0.06}s` }}
+                          className="flood-row relative flex cursor-not-allowed items-center gap-4 py-3.5 pl-3.5 select-none [@media(max-height:700px)]:py-2.5"
+                        >
+                          <span className="figures w-6 shrink-0 self-start pt-[0.85rem] text-[0.6875rem] font-semibold text-on-accent/45">
+                            0{index + 1}
+                          </span>
+                          <span className="flex-1 font-display text-[1.875rem] leading-[1.15] font-semibold tracking-[-0.035em] text-on-accent/45 [@media(min-height:760px)]:text-[2.25rem]">
+                            {link.label}
+                          </span>
+                          <span className="flex shrink-0 items-center gap-1.5 text-[0.6875rem] text-on-accent/60">
+                            <Lock weight="light" aria-hidden="true" className="size-4" />
+                            <span className="sr-only">{NOT_BUILT_LABEL}</span>
+                          </span>
+                        </span>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li
+                      key={link.href}
+                      /* Clips its own link, so each line rises out of the rule
+                         above it instead of fading in on the spot. */
+                      className="flood-line overflow-hidden border-b border-on-accent/25"
+                    >
+                      <Link
+                        href={link.href}
+                        aria-current={current ? "page" : undefined}
+                        style={{ transitionDelay: `${0.18 + index * 0.06}s` }}
+                        /* Steps down on short handsets so the whole menu still
+                           lands inside one screen where it can. */
+                        className="flood-row group relative flex items-center gap-4 py-3.5 pl-3.5 [@media(max-height:700px)]:py-2.5"
+                      >
+                        {/* The rail is the pressed state; on the current page it
+                            is simply already there. Six entries is enough that
+                            "which page am I on" stops being obvious. */}
+                        <span
+                          className={`flood-rail${current ? " flood-rail-on" : ""}`}
+                          aria-hidden="true"
+                        />
+                        <span className="figures w-6 shrink-0 self-start pt-[0.85rem] text-[0.6875rem] font-semibold text-on-accent/85">
+                          0{index + 1}
+                        </span>
+                        <span
+                          /* The current page is set in the serif italic — the
+                             site's emphasis voice, used here for exactly what
+                             it means. NOT bolded with it: Instrument Serif
+                             ships one weight, and a utility that forces 600
+                             onto it gets a synthesised faux-bold, which is the
+                             most obviously wrong thing this typeface can do. */
+                          className={`flex-1 font-display text-[1.875rem] leading-[1.15] font-semibold tracking-[-0.035em] text-on-accent [@media(min-height:760px)]:text-[2.25rem] ${
+                            current ? "italic" : ""
+                          }`}
+                        >
+                          {link.label}
+                        </span>
+                        <ArrowUpRight
+                          weight="bold"
+                          aria-hidden="true"
+                          className="size-5 shrink-0 text-on-accent/85 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-active:translate-x-1 group-active:-translate-y-1"
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* Recent work, thumb-scrollable — the menu shows the work rather
+                than only naming it. */}
+            <div
+              className="flood-item shrink-0"
+              style={{ transitionDelay: "0.36s" }}
+            >
+              <div className="shell flex items-baseline justify-between">
+                <p className="eyebrow text-on-accent/85">
+                  Recent work
+                </p>
+                <Link
+                  href="/work"
+                  className="inline-flex items-center gap-1 eyebrow text-on-accent/85"
+                >
+                  All work
+                  <ArrowUpRight weight="bold" aria-hidden="true" className="size-3" />
+                </Link>
+              </div>
+              {/* scrollPaddingInline, not just paddingInline. Snap points align
+                  an item's edge to the SNAPPORT edge, which ignores padding —
+                  so the browser snapped on load and dragged the first thumbnail
+                  20px off the left gutter, out of line with every other row in
+                  the menu. The scroll padding is what the snapport reads. */}
+              <ul style={{ paddingInline: "1.25rem", scrollPaddingInline: "1.25rem" }}
+                className="mt-3 flex snap-x gap-3 overflow-x-auto pb-1">
+                {featuredProjects.slice(0, 5).map((project) => (
+                  <li key={project.slug} className="w-[42vw] max-w-[11rem] shrink-0 snap-start">
+                    <Link href={`/work#${project.slug}`} className="block">
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-[4px] bg-on-accent/15">
+                        <Image
+                          src={project.images[0].src}
+                          alt=""
+                          fill
+                          sizes="42vw"
+                          placeholder="blur"
+                          blurDataURL={blurTone(project.images[0].tone)}
+                          className="object-cover"
+                        />
+                        {/* A hairline in the menu's own ink, so the photographs
+                            sit ON the orange rather than punching holes in it. */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute inset-0 rounded-[4px] ring-1 ring-on-accent/25 ring-inset"
+                        />
+                      </div>
+                      <p className="mt-2 text-[0.8125rem] leading-snug font-medium text-on-accent/90">
+                        {project.title}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Everything below sits in thumb reach. */}
+            <div
+              style={{ transitionDelay: "0.46s" }}
+              className="flood-item shell mt-auto shrink-0 pt-7 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+            >
+              <div className="mb-6 h-px w-full bg-on-accent/25" aria-hidden="true" />
+
+              <Link
+                href={CTA_HREF}
+                className="group mb-6 flex h-14 w-full items-center justify-center gap-2.5 rounded-full bg-on-accent text-base font-semibold whitespace-nowrap text-accent transition-transform duration-200 active:scale-[0.98]"
+              >
+                {CTA_LABEL}
+                <ArrowUpRight
+                  weight="bold"
+                  aria-hidden="true"
+                  className="size-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-active:translate-x-1 group-active:-translate-y-1"
+                />
+              </Link>
+
+              <div className="grid gap-3 text-on-accent/85">
+                <a href={`tel:${site.phoneHref}`} className="flex items-center gap-3 text-[0.95rem]">
+                  <Phone weight="light" className="size-[1.15rem] shrink-0" />
+                  {site.phone}
+                </a>
+                <a
+                  href={`mailto:${site.email}`}
+                  className="flex items-center gap-3 text-[0.95rem]"
+                >
+                  <EnvelopeSimple weight="light" className="size-[1.15rem] shrink-0" />
+                  {site.email}
+                </a>
+                <p className="flex items-center gap-3 text-[0.95rem]">
+                  <Clock weight="light" className="size-[1.15rem] shrink-0" />
+                  {site.hours[0].days}, {site.hours[0].time}
+                </p>
+              </div>
+
+              {socialLinks.length > 0 && (
+                <div className="mt-6 flex gap-5 text-[0.8125rem] tracking-wide text-on-accent/85 uppercase">
+                  {socialLinks.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className="inline-flex items-center gap-1"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
+                      {link.label} <ArrowUpRight weight="light" className="size-3.5" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+      </>
+    </div>
+  );
+}
+
+/** Three brush strokes that morph into an X. Uneven at rest, deliberately. */
+function BrushToggle({
+  open,
+  onClick,
+  onDark = false,
+  ref,
+}: {
+  open: boolean;
+  onClick: () => void;
+  onDark?: boolean;
+  ref?: React.Ref<HTMLButtonElement>;
+}) {
+  const bar = `toggle-bar absolute left-0 h-[2.5px] rounded-full origin-center ${
+    onDark ? "bg-on-accent" : "bg-ink"
+  }`;
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-controls="mobile-menu"
+      aria-label={open ? "Close menu" : "Open menu"}
+      className="relative z-[96] -mr-2 grid size-11 place-items-center rounded-full transition-transform duration-200 active:scale-[0.94]"
+    >
+      <span className="relative block h-[18px] w-[26px]">
+        {/* Uneven at rest, an even X when open. Transitions live in
+            globals.css so no JavaScript animates them. */}
+        <span
+          className={bar}
+          style={{
+            top: 0,
+            width: 26,
+            transform: open ? "translateY(8px) rotate(45deg)" : "none",
+          }}
+        />
+        <span
+          className={bar}
+          style={{
+            top: 8,
+            width: open ? 26 : 17,
+            opacity: open ? 0 : 1,
+            transform: open ? "scaleX(0)" : "none",
+          }}
+        />
+        <span
+          className={bar}
+          style={{
+            top: 16,
+            width: open ? 26 : 22,
+            transform: open ? "translateY(-8px) rotate(-45deg)" : "none",
+          }}
+        />
+      </span>
+    </button>
+  );
+}
