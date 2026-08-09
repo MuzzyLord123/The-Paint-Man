@@ -79,6 +79,11 @@
 
   /* Motion — one shared curve. Confident, physical, settles without bounce. */
   --ease-coat: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The exception, used for the splash fade and nothing else. --ease-coat is an
+     expo-out: it is 80% done in the first quarter of its duration, which is
+     right for something arriving into place and wrong for a fade, where it
+     reads as a hard cut. This one spends its time evenly. */
+  --ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Editorial rhythm */
   --spacing-gutter: 1.25rem;
@@ -861,6 +866,176 @@
 }
 
 /* --------------------------------------------------------------------------
+   SPLASH SCREEN — the logo fades up on black, then the black clears in bands.
+
+     0.20 – 1.00s  the logo fades and settles up into place
+     0.85 – 1.35s  a hairline draws itself underneath
+     1.45 – 1.73s  the logo eases away
+     1.55 – 2.40s  six bands lift, 60ms apart
+     2.40s         the panel is hidden
+
+   FILL MODES ARE LOAD-BEARING HERE, and the reason is not obvious. A `both`
+   fill applies the FIRST keyframe throughout the animation's delay. Two
+   animations on one element, the second delayed, means the second one's
+   opening keyframe overrides the first one for the whole time the first is
+   trying to run. `splash-away` with `both` pinned the logo at opacity 1 from
+   the very first frame and the fade-in never played once. So: `both` only
+   where an animation starts the element in a state it must hold, `forwards`
+   for anything that takes over later.
+
+   THE DISMISSAL IS PURE CSS, ending on visibility: hidden. Nothing has to run
+   for the splash to leave, which is the only acceptable design for something
+   covering the whole page. pointer-events: none from the first frame, so it
+   cannot swallow a tap either.
+   -------------------------------------------------------------------------- */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  /* NO background of its own — the bands hold the black, so the site shows
+     through the gaps as they lift rather than one plane sliding away. */
+  animation: splash-end 0.4s linear 2.4s forwards;
+}
+/* BOTH keyframes are hidden, and the fill is `forwards`, not `both`. Neither is
+   arbitrary.
+   `visibility` does not interpolate like a normal property: for any progress
+   strictly between 0 and 1, `visible` wins outright. And a 0.01s duration after
+   a 2.4s delay never lands on progress exactly 1 — floating point puts it at
+   0.9999999999999787, which reads as "in the active phase" forever. The
+   animation reported `finished` and the panel stayed `visibility: visible` for
+   the life of the page. Pinning hidden at both ends removes the interpolation
+   from the question entirely: every progress value resolves to hidden.
+   `forwards` rather than `both` because a backwards fill would apply the `from`
+   keyframe during the 2.45s delay and hide the splash before it ever played. */
+@keyframes splash-end {
+  from,
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Returning page views in the same session. ?splash clears the flag — see
+   SPLASH_GUARD in Splash.tsx. */
+:root[data-splash="seen"] .splash {
+  display: none;
+}
+
+/* HOW MANY BANDS lives here rather than in the component, so it can change with
+   the viewport. Splash.tsx renders six; any --n below six simply parks the spare
+   ones off the right-hand edge, where overflow: hidden clips them. Six bands on
+   a 390px phone is 65px each, which reads as a venetian blind rather than a
+   decision — four at ~98px reads deliberate. Never set --n ABOVE the number of
+   spans the component renders, or the right of the screen stays black. */
+.splash-bands {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  --n: 6;
+}
+@media (width <= 40rem) {
+  .splash-bands {
+    --n: 4;
+  }
+}
+
+/* Absolutely positioned with a 1px overlap. Six flexed children land on
+   sub-pixel boundaries and hairline seams of the page behind show through. */
+.splash-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--i) * (100% / var(--n)));
+  width: calc(100% / var(--n) + 1px);
+  background-color: var(--color-paper);
+  /* `both`, and here it is correct: the backwards fill holds translateY(0),
+     which is where the band already is. The last band starts at 1.85s and takes
+     0.55s, landing on 2.40s — the same instant the panel goes hidden. */
+  animation: splash-band 0.55s var(--ease-coat) calc(1.55s + var(--i) * 0.06s) both;
+}
+@keyframes splash-band {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-101%);
+  }
+}
+
+/* Warms the black from below. Fades with the logo, before the bands move, so
+   it is never left sitting over the site. */
+.splash-glow {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    50rem 28rem at 50% 118%,
+    rgb(242 101 34 / 0.16) 0%,
+    transparent 70%
+  );
+  animation: splash-out 0.3s var(--ease-coat) 1.45s forwards;
+}
+
+.splash-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  animation:
+    splash-in 0.8s var(--ease-fade) 0.2s both,
+    splash-away 0.28s var(--ease-coat) 1.45s forwards;
+}
+@keyframes splash-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Takes over from splash-in at 1.45s and wins on the same properties, because it
+   is later in the shorthand list. `forwards`, so it contributes nothing before
+   then — see the note at the top of this section. */
+@keyframes splash-away {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+@keyframes splash-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The hairline under the mark, drawn left to right — the site's section rule,
+   used once more as the last beat of the opening. */
+.splash-rule {
+  position: absolute;
+  top: calc(100% + 1.75rem);
+  left: 50%;
+  width: min(18rem, 62vw);
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-hairline));
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: left;
+  animation: splash-rule 0.5s var(--ease-coat) 0.85s both;
+}
+@keyframes splash-rule {
+  to {
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
    Headline rise. Every section heading comes up out of the rule above it,
    masked rather than faded — the words arrive edge-first, the way the hero
    wipe does, so the two read as the same gesture at two scales.
@@ -1001,8 +1176,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Trade marquee. A full-bleed orange band whose words track the reader's own
-   scrolling rather than a timer. See TradeMarquee.tsx for why.
+   Trade marquee. A full-bleed orange band whose words drift steadily to the
+   right, at one constant speed, for as long as the band is on screen.
    -------------------------------------------------------------------------- */
 
 .marquee-band {
@@ -1015,30 +1190,28 @@
 }
 
 .marquee-track {
-  /* -50% is exactly one of the two identical copies, which is what makes the
-     loop seamless. Anything else shows a jump at the wrap. */
   will-change: transform;
+  /* `linear` and `infinite`, with no delay: one direction, one speed, no pauses
+     and no easing at the wrap. An eased marquee visibly slows down twice per
+     loop, which is what makes a band look like it is stalling. */
+  animation: marquee-run 32s linear infinite;
 }
 
-@supports (animation-timeline: scroll()) {
-  .marquee-track {
-    animation: marquee-run linear both;
-    animation-timeline: scroll(root block);
-  }
-}
-
-@supports not (animation-timeline: scroll()) {
-  .marquee-track {
-    animation: marquee-run 28s linear infinite;
-  }
-}
-
+/* RIGHTWARD, AND SEAMLESS — the direction is the whole reason for the -50%
+   start. The track holds two identical copies of the six trades, so it is twice
+   as wide as it needs to be. Beginning at -50% puts the second copy where the
+   first would sit and parks the first copy off-screen to the left, which is what
+   gives the words somewhere to come FROM as they travel right. Running to 0
+   lands on the first copy in exactly the position the second copy started in:
+   the same pixels, so the restart is invisible.
+   -50% is not a tuning value. It is precisely one copy. Any other number shows a
+   jump every 32 seconds. */
 @keyframes marquee-run {
   from {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
   to {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1143,6 +1316,11 @@
   }
   .roller-band,
   .scroll-level {
+    display: none;
+  }
+  /* Someone who has asked for less movement should not be shown a full-screen
+     animation before they are allowed to read anything. */
+  .splash {
     display: none;
   }
   /* The band holds still. Every word is already on screen at offset 0, so

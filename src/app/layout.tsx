@@ -8,6 +8,7 @@ import { MobileActionBar } from "@/components/layout/MobileActionBar";
 import { ScrollPaintLevel } from "@/components/layout/ScrollPaintLevel";
 import { ChatLauncher } from "@/components/chat/ChatLauncher";
 import { StructuredData } from "@/components/seo/StructuredData";
+import { SPLASH_GUARD, Splash } from "@/components/brand/Splash";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -62,6 +63,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <noscript>
           <style>{`.reveal{opacity:1!important;transform:none!important;transition:none!important}`}</style>
         </noscript>
+        {/* Marks the splash as seen BEFORE first paint, so a second page view in
+            the same session never flashes it. As a module this would run after
+            paint and the splash would appear and then vanish, which is worse
+            than not having one. See Splash.tsx. */}
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_GUARD }} />
       </head>
       <body className="bg-paper text-ink antialiased">
         <a href="#main" className="skip-link">
@@ -74,6 +80,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MobileActionBar />
         <ChatLauncher />
         <StructuredData />
+        {/* LAST IN THE BODY ON PURPOSE, even though it covers the whole screen.
+            It is position: fixed with z-index 200, so where it sits in the DOM
+            makes no difference to what is on top — but it does decide when the
+            preload scanner finds its logo. First in the body, the logo was
+            discovered before the hero photograph and queued ahead of the page's
+            LCP element. Last, the photograph goes first. */}
+        <Splash />
         <div className="roller-grain" aria-hidden="true" />
       </body>
     </html>
