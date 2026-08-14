@@ -88,9 +88,8 @@ export type Testimonial = {
  * length as "N recommendations on Facebook" would assert a total nobody here has
  * counted, while excluding one — a claim that is both unverifiable and
  * unflattering the moment someone does count. The switcher's own position-over-
- * total counter is a different thing and is fine: it describes THIS rail, which
- * anyone can verify by pressing next, and says nothing about what is on
- * Facebook.
+ * total counter is a different thing and is fine: it counts THIS rail, which is
+ * a set anyone can watch go past, and says nothing about what is on Facebook.
  *
  * NO TOWN OR JOB FIELD any more. The old shape asked for both, and a Facebook
  * recommendation gives neither. Inventing "Chester" or "Hall, stairs and
@@ -98,8 +97,8 @@ export type Testimonial = {
  * lost the fields rather than the data gaining guesses.
  *
  * ADDING MORE. Append to the array. The switcher reads its length, so the
- * counter, the progress bar and the rotation all follow automatically — there is
- * no second place to update.
+ * counter and the rotation both follow automatically — there is no second place
+ * to update.
  *
  * THE ORDER IS NOT CHRONOLOGICAL, AND THAT IS DELIBERATE. These run long, short,
  * long so that consecutive slides are visibly different sizes — the switcher

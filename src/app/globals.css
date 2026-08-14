@@ -1260,59 +1260,33 @@
   pointer-events: auto;
 }
 
-/* ONE BAR, NOT A ROW OF TICKS. There used to be a tick per review, each filling
-   over the dwell time — good at eight, useless at twenty-one. The row is a fixed
-   width, so every review James adds makes each tick thinner: ~19px at eight,
-   ~9px at sixteen, ~5px at twenty-one. Nobody distinguishes twenty-one 5px
-   hairlines, nobody aims a thumb at one, and it stopped reading as a control.
+/* HANGING OPENING QUOTE. The quote mark is set in the margin so the first
+   letter of the review lines up with the attribution under it and with the
+   eyebrow above it, instead of being pushed right by the width of a piece of
+   punctuation. Every other left edge in this section is flush; without this one
+   the largest type on the band is the one thing out of line, which is the most
+   visible place to get it wrong.
 
-   A single bar plus a position-over-total counter keeps what they were for —
-   where am I, how many are there, how long until it moves — at any list length,
-   and leaves navigation to the 36px arrows beside it. It also deletes a WCAG 2.2
-   SC 2.5.8 target-size problem rather than arguing an exception for it: the bar
-   is decorative and aria-hidden, so there is no undersized control left.
+   In em, so it tracks the four type steps without four separate values — the
+   glyph and the indent scale together. It only ever affects the first line,
+   which is what text-indent does and the whole reason it is the right tool
+   here rather than a negative margin on the span.
 
-   The fill is driven by the same --dwell the interval uses, passed in from the
-   component, so the indicator and the timer are one object and cannot disagree.
-   The component keys the fill on the index, which remounts it, which is what
-   restarts the animation on every change including a manual one. */
-.review-rail {
-  position: relative;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 2px;
+   Not `hanging-punctuation: first`, which does exactly this and is the correct
+   answer everywhere except that Safari is still the only engine that ships it.
+   The value below is the same idea with support. */
+.review-quote {
+  text-indent: -0.42em;
 }
-.review-rail::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-color: var(--color-ink);
-  opacity: 0.18;
-}
-/* Paused rather than removed, so hovering freezes the bar where it is instead of
-   snapping it back to empty and refilling when the pointer leaves. */
-.review-rail-fill {
-  position: absolute;
-  inset: 0;
-  transform-origin: left;
-  transform: scaleX(0);
-  background-color: var(--color-accent);
-  animation: review-fill var(--dwell, 7000ms) linear both;
-  animation-play-state: paused;
-}
-.review-rail[data-running="true"] .review-rail-fill {
-  animation-play-state: running;
-}
-/* Under reduced motion this animation is dropped entirely, in the consolidated
-   prefers-reduced-motion block further down with the site's other exemptions. */
-@keyframes review-fill {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
+
+/* No progress bar. There was one — a hairline filling over the dwell time —
+   and before that a row of per-review ticks. Both are gone: the ticks because a
+   fixed-width row divided by a growing list stops being hittable, the bar
+   because a full-width rule and three round buttons under an editorial pull
+   quote made the band read as an embedded widget. The counter and the pause
+   control are all that is left, and neither needs styling beyond the utilities
+   they already carry. Timing now lives only in DWELL_MS, with nothing painted
+   that has to be kept in step with it. */
 
 /* --------------------------------------------------------------------------
    Privacy notice. A panel, not a barrier — see PrivacyNotice.tsx for why this
@@ -1598,16 +1572,12 @@
     transition: none;
   }
   /* The reviews do not auto-advance under reduced motion — the component stops
-     the interval — so slides swap without a crossfade rather than sliding, and
-     the timer bar rests empty. Empty rather than full: there is no time left to
-     count, and a bar pinned at 100% reads as "about to advance" from something
-     that never will. At 0% it is just the hairline rule it sits in. */
+     the interval — so the slide simply rests, with no crossfade and no rise.
+     There is no timer bar to exempt any more; the counter is static type and
+     was never animated. */
   .review-slide {
     transition: none;
     transform: none;
-  }
-  .review-rail-fill {
-    animation: none;
   }
   /* The notice still appears — it just does not travel to get there. */
   .privacy-notice,
