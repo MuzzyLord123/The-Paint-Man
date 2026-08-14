@@ -96,28 +96,110 @@ export type Testimonial = {
  * landing" to fill a layout would be making up part of a review, so the type
  * lost the fields rather than the data gaining guesses.
  *
- * ADDING MORE. Append to the array. The switcher reads its length, so the
- * counter and the rotation both follow automatically — there is no second place
- * to update.
+ * THE ORDER IS NEWEST FIRST. The array runs July 2024 down to January 2017, and
+ * the rail plays it in array order, so the review a visitor lands on is always
+ * the most recent one. That is the whole reason for the ordering: the first
+ * thing said about this business should not be dated 2017 when there is work
+ * from 2024 to show. Nothing else on the site depends on the order.
  *
- * THE ORDER IS NOT CHRONOLOGICAL, AND THAT IS DELIBERATE. These run long, short,
- * long so that consecutive slides are visibly different sizes — the switcher
- * sets each review at a size chosen from its length, so three long ones in a row
- * means three near-identical screens and the rail stops looking like it is
- * moving. After appending, drag the new entry to sit beside a review of a
- * different length. Nothing breaks if you do not; it just reads flatter.
+ * WHAT THAT COST, because it did cost something. The previous order was
+ * deliberately NOT chronological: it alternated long and short so consecutive
+ * slides were visibly different sizes, since the switcher picks a type size from
+ * each review's length (see sizeFor in Testimonials.tsx) and a run of
+ * similar-length reviews means a run of near-identical screens. Sorting by date
+ * gives that up. It shows worst at positions 13 to 18 — Helen Munroe through
+ * Jane Harrison, July 2018 back to August 2017 — which are six reviews between
+ * 187 and 230 characters, so six slides at the same size in a row. There is no
+ * fixing that without breaking the date order; the only freedom left is between
+ * reviews sharing a month, and that is already spent (the three February 2017
+ * entries are arranged long, short, medium for exactly this reason).
+ *
+ * ADDING MORE. Insert in date order rather than appending — a new review is
+ * almost certainly the newest, so it belongs at the TOP of the array, not the
+ * bottom. Appending would bury it and leave a 2017 review opening the rail
+ * again, which is the thing this order exists to prevent. The switcher reads the
+ * array's length, so the counter and the rotation follow automatically; there is
+ * no second place to update.
  */
 export const testimonials: Testimonial[] = [
   {
-    quote: "You couldn't get a more reliable, friendly, trustworthy guy like James.",
-    name: "Helen Preston",
-    date: "May 2017",
+    /* SHORTENED BY US, not by Facebook — the only one, and see the note on that
+       above. The screenshot showed this one EXPANDED ("See less"), so the full
+       review is known: it runs about 770 characters, roughly double the longest
+       here, and every slide shares one cell sized to the longest. Carrying it
+       whole would have added around 260px to a section that appears on the home
+       page, against a brief that it must not bloat the home page.
+
+       This is the opening, contiguous, ending at a full stop. What is cut is
+       four more sentences of praise and a sign-off, so the excerpt understates
+       the review rather than flattering it. "on the exterior our house" is hers. */
+    quote:
+      "James has just completed a fabulous job on the exterior our house. He has also decorated two bedrooms and a lounge for us. His work is exemplary and he is a true perfectionist in every sense of the word. He is friendly, approachable, extremely honest and trustworthy and hardworking.",
+    name: "Frankie Williams",
+    date: "July 2024",
   },
   {
     quote:
-      "We would highly recommend James to you. He takes much pride in his work and the result is always impeccable. Friendly, approachable, reliable and trustworthy. Book him in today !",
-    name: "Louise Michelle",
-    date: "May 2017",
+      "Just had our conservatory painted by James and we couldn't be happier, really excellent job done without any fuss or mess. He's a busy man so we had to wait a couple of weeks but it's worth the wait!",
+    name: "Ed Naylor",
+    date: "October 2020",
+  },
+  {
+    /* "James done my hall" and "He also done my bathroom" are hers, as are the
+       two hearts. */
+    quote:
+      "James done my hall, stairs and landing. He also done my bathroom and kitchen, I would highly recommend him. James is an excellent professional, trustworthy, reliable and honest. I had no worries about him being in my home alone while I was in work. James's work is second to none and I would hire him again, very happy customer ❤️❤️",
+    name: "Jeanette Tillett",
+    date: "October 2020",
+  },
+  {
+    /* Signed "Lindsey and Harry V." under a "Lindz J Vern" account — see the
+       note on names above. */
+    quote:
+      "James painted the front of our house. Great job, excellent price and, despite some bad weather, completed in good time. James is a really nice guy, friendly but professional. Will certainly contact him again for our next job. Thanks James. Lindsey and Harry V.",
+    name: "Lindz J Vern",
+    date: "August 2020",
+  },
+  {
+    /* "A fantastic job , fantastic price" — the space before the comma is his. */
+    quote:
+      "Fantastic service, from the initial quote to the completion, painted the outside of our house and he was brilliant. A fantastic job , fantastic price and very professional, Thank you James for an amazing job",
+    name: "John Carroll",
+    date: "June 2020",
+  },
+  {
+    /* Opened with "5 Star" on its own line, which is dropped — see the note on
+       that above. "Thoroughly nice guy, Would definitely" is hers. */
+    quote:
+      "James painted our house exterior and did a great job at a very reasonable price. Thoroughly nice guy, Would definitely use James again and can't recommend him highly enough. Thanks James!",
+    name: "Carla May",
+    date: "April 2020",
+  },
+  {
+    /* ".." twice, and three exclamation marks, are Sharon's own punctuation. */
+    quote:
+      "Highly recommend James to be the 1 stop man for very professional job .. he is a great guy who really takes your home into his project to ensure your home is as important as it is to you and your family .. we are so happy with our newly painted rooms and recommend you take a look at his page for the evidence of a job well done!!!",
+    name: "Sharon Brewer",
+    date: "October 2019",
+  },
+  {
+    /* Written as four short lines; run together here as one paragraph, which is
+       how every other multi-line review in this file is handled. The trailing
+       emoji are his and are kept — they fall back to the system emoji font,
+       which is why they survive the display face being a subset. */
+    quote:
+      "James recently painted our house exterior in not so great weather... We're very happy with the huge difference/look of the house in its new colour. James is reliable and dependable. Thanks very much 😊🏡",
+    name: "Paul John",
+    date: "October 2019",
+  },
+  {
+    /* The only reviewer who shares the decorator's first name. "Thanks again,
+       James!" is addressed to James Young; the byline is James Churchill. Both
+       are as written. */
+    quote:
+      "Just had James in to paint our hall and stairs, and would definitely use him again. Really easy to deal with; came out straight away to quote, agreed a timeframe and price, and showed up on time (which is so rare these days!). Finished the job on time and we're delighted with the results. He also worked away quietly with his earphones in, so I was able to work from home without being disturbed. Thanks again, James!",
+    name: "James Churchill",
+    date: "July 2019",
   },
   {
     /* Shortened: the review continues past "whilst we were out." behind
@@ -135,65 +217,6 @@ export const testimonials: Testimonial[] = [
     date: "September 2018",
   },
   {
-    /* The only reviewer who shares the decorator's first name. "Thanks again,
-       James!" is addressed to James Young; the byline is James Churchill. Both
-       are as written. */
-    quote:
-      "Just had James in to paint our hall and stairs, and would definitely use him again. Really easy to deal with; came out straight away to quote, agreed a timeframe and price, and showed up on time (which is so rare these days!). Finished the job on time and we're delighted with the results. He also worked away quietly with his earphones in, so I was able to work from home without being disturbed. Thanks again, James!",
-    name: "James Churchill",
-    date: "July 2019",
-  },
-  {
-    quote:
-      "I'm very pleased with all the work James has done. He is tidy, always on time, reliable and his preparation and painting is outstanding. Would recommend and definitely use him again.",
-    name: "Suzanne",
-    date: "February 2017",
-  },
-  {
-    quote:
-      "Thank you so much James for the fab job you've done with our hall, stairs, landing and living room. It looks amazing. Totally transformed. The time and effort you put into your work here has really paid off. Thanks again xx",
-    name: "Leanne Styles",
-    date: "February 2018",
-  },
-  {
-    /* Shortened: the review continues past "impressive." behind Facebook's
-       "See more", and the visible text ended mid-word at "genuine, happy pers". */
-    quote:
-      "I had been looking for a good / reliable painter, James was recommended to me and I'm delighted with the job he did for us, our house looks amazing, his attention to detail is impressive.",
-    name: "Debbie Sindall",
-    date: "April 2018",
-  },
-  {
-    /* ".." twice, and three exclamation marks, are Sharon's own punctuation. */
-    quote:
-      "Highly recommend James to be the 1 stop man for very professional job .. he is a great guy who really takes your home into his project to ensure your home is as important as it is to you and your family .. we are so happy with our newly painted rooms and recommend you take a look at his page for the evidence of a job well done!!!",
-    name: "Sharon Brewer",
-    date: "October 2019",
-  },
-  {
-    quote:
-      "Thank you James for the fabulous job you did painting the exterior of my house. I really can't fault James' service at all; great paint work and he couldn't have been more helpful. 100% recommend",
-    name: "Jane Harrison",
-    date: "August 2017",
-  },
-  {
-    /* "Helen 'phillip-boag' Munroe" on Facebook — see the note on names above. */
-    quote:
-      "Absolutely delighted at the work done in my house. Can't fault anything. Would recommend James without a second thought. All work completed to the highest standard including some extra little jobs that weren't even on the list!",
-    name: "Helen Munroe",
-    date: "July 2018",
-  },
-  {
-    /* Written as four short lines; run together here as one paragraph, which is
-       how every other multi-line review in this file is handled. The trailing
-       emoji are his and are kept — they fall back to the system emoji font,
-       which is why they survive the display face being a subset. */
-    quote:
-      "James recently painted our house exterior in not so great weather... We're very happy with the huge difference/look of the house in its new colour. James is reliable and dependable. Thanks very much 😊🏡",
-    name: "Paul John",
-    date: "October 2019",
-  },
-  {
     /* Shortened: the review continues past "professional approach." behind
        Facebook's "See more", and the visible text ended mid-sentence at "your
        pricing is more than reasonable and certainly challenging".
@@ -207,51 +230,25 @@ export const testimonials: Testimonial[] = [
     date: "August 2018",
   },
   {
+    /* "Helen 'phillip-boag' Munroe" on Facebook — see the note on names above. */
     quote:
-      "James did a wonderful job painting our house, and we would have no hesitation in recommending him. He was very professional, always cheerful, having to cope with the vagaries of our weather.",
-    name: "Lynn Littler",
-    date: "October 2017",
+      "Absolutely delighted at the work done in my house. Can't fault anything. Would recommend James without a second thought. All work completed to the highest standard including some extra little jobs that weren't even on the list!",
+    name: "Helen Munroe",
+    date: "July 2018",
+  },
+  {
+    /* Shortened: the review continues past "impressive." behind Facebook's
+       "See more", and the visible text ended mid-word at "genuine, happy pers". */
+    quote:
+      "I had been looking for a good / reliable painter, James was recommended to me and I'm delighted with the job he did for us, our house looks amazing, his attention to detail is impressive.",
+    name: "Debbie Sindall",
+    date: "April 2018",
   },
   {
     quote:
-      "I highly recommend James. He's hardworking, very professional and friendly. Can't believe the work he did in one day! And managed to squeeze us in last minute aswell. Thank you so much. We will definitely be getting James to do more work for us.",
-    name: "Nicki Lawlor",
-    date: "February 2017",
-  },
-  {
-    /* Opened with "5 Star" on its own line, which is dropped — see the note on
-       that above. "Thoroughly nice guy, Would definitely" is hers. */
-    quote:
-      "James painted our house exterior and did a great job at a very reasonable price. Thoroughly nice guy, Would definitely use James again and can't recommend him highly enough. Thanks James!",
-    name: "Carla May",
-    date: "April 2020",
-  },
-  {
-    quote:
-      "Would highly recommend James, trustworthy, reliable and hard working cannot believe how much he has done in such a short space of time, loving my house it looks like new, lovely fella! Will definitely have him back for further work nice to find someone who does the job properly and you can trust! Thanks James",
-    name: "Ruth Rossiter",
-    date: "February 2017",
-  },
-  {
-    /* "A fantastic job , fantastic price" — the space before the comma is his. */
-    quote:
-      "Fantastic service, from the initial quote to the completion, painted the outside of our house and he was brilliant. A fantastic job , fantastic price and very professional, Thank you James for an amazing job",
-    name: "John Carroll",
-    date: "June 2020",
-  },
-  {
-    /* Signed "Lindsey and Harry V." under a "Lindz J Vern" account — see the
-       note on names above. */
-    quote:
-      "James painted the front of our house. Great job, excellent price and, despite some bad weather, completed in good time. James is a really nice guy, friendly but professional. Will certainly contact him again for our next job. Thanks James. Lindsey and Harry V.",
-    name: "Lindz J Vern",
-    date: "August 2020",
-  },
-  {
-    quote:
-      "james did a great job on painting the outside of my house. i would highley reccomend. thanks again james. deffinatley a 5* service.",
-    name: "Natalie Chittick",
-    date: "January 2017",
+      "Thank you so much James for the fab job you've done with our hall, stairs, landing and living room. It looks amazing. Totally transformed. The time and effort you put into your work here has really paid off. Thanks again xx",
+    name: "Leanne Styles",
+    date: "February 2018",
   },
   {
     /* Shortened: the review continues past "second to none." behind Facebook's
@@ -263,32 +260,49 @@ export const testimonials: Testimonial[] = [
   },
   {
     quote:
-      "Just had our conservatory painted by James and we couldn't be happier, really excellent job done without any fuss or mess. He's a busy man so we had to wait a couple of weeks but it's worth the wait!",
-    name: "Ed Naylor",
-    date: "October 2020",
+      "James did a wonderful job painting our house, and we would have no hesitation in recommending him. He was very professional, always cheerful, having to cope with the vagaries of our weather.",
+    name: "Lynn Littler",
+    date: "October 2017",
   },
   {
-    /* "James done my hall" and "He also done my bathroom" are hers, as are the
-       two hearts. */
     quote:
-      "James done my hall, stairs and landing. He also done my bathroom and kitchen, I would highly recommend him. James is an excellent professional, trustworthy, reliable and honest. I had no worries about him being in my home alone while I was in work. James's work is second to none and I would hire him again, very happy customer ❤️❤️",
-    name: "Jeanette Tillett",
-    date: "October 2020",
+      "Thank you James for the fabulous job you did painting the exterior of my house. I really can't fault James' service at all; great paint work and he couldn't have been more helpful. 100% recommend",
+    name: "Jane Harrison",
+    date: "August 2017",
   },
   {
-    /* SHORTENED BY US, not by Facebook — the only one, and see the note on that
-       above. The screenshot showed this one EXPANDED ("See less"), so the full
-       review is known: it runs about 770 characters, roughly double the longest
-       here, and every slide shares one cell sized to the longest. Carrying it
-       whole would have added around 260px to a section that appears on the home
-       page, against a brief that it must not bloat the home page.
-
-       This is the opening, contiguous, ending at a full stop. What is cut is
-       four more sentences of praise and a sign-off, so the excerpt understates
-       the review rather than flattering it. "on the exterior our house" is hers. */
+    quote: "You couldn't get a more reliable, friendly, trustworthy guy like James.",
+    name: "Helen Preston",
+    date: "May 2017",
+  },
+  {
     quote:
-      "James has just completed a fabulous job on the exterior our house. He has also decorated two bedrooms and a lounge for us. His work is exemplary and he is a true perfectionist in every sense of the word. He is friendly, approachable, extremely honest and trustworthy and hardworking.",
-    name: "Frankie Williams",
-    date: "July 2024",
+      "We would highly recommend James to you. He takes much pride in his work and the result is always impeccable. Friendly, approachable, reliable and trustworthy. Book him in today !",
+    name: "Louise Michelle",
+    date: "May 2017",
+  },
+  {
+    quote:
+      "Would highly recommend James, trustworthy, reliable and hard working cannot believe how much he has done in such a short space of time, loving my house it looks like new, lovely fella! Will definitely have him back for further work nice to find someone who does the job properly and you can trust! Thanks James",
+    name: "Ruth Rossiter",
+    date: "February 2017",
+  },
+  {
+    quote:
+      "I'm very pleased with all the work James has done. He is tidy, always on time, reliable and his preparation and painting is outstanding. Would recommend and definitely use him again.",
+    name: "Suzanne",
+    date: "February 2017",
+  },
+  {
+    quote:
+      "I highly recommend James. He's hardworking, very professional and friendly. Can't believe the work he did in one day! And managed to squeeze us in last minute aswell. Thank you so much. We will definitely be getting James to do more work for us.",
+    name: "Nicki Lawlor",
+    date: "February 2017",
+  },
+  {
+    quote:
+      "james did a great job on painting the outside of my house. i would highley reccomend. thanks again james. deffinatley a 5* service.",
+    name: "Natalie Chittick",
+    date: "January 2017",
   },
 ];
