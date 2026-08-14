@@ -94,7 +94,7 @@ export const site = {
   /** Structured-data + copy facts. Keep honest. */
   facts: {
     guarantee: "2-year workmanship guarantee",
-    insurance: "£2m public liability cover",
+    insurance: "£1m public liability cover",
     responseTime: "Quotes back within 48 hours",
   },
 

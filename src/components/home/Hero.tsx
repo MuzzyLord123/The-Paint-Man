@@ -159,7 +159,7 @@ export function Hero() {
               { figure: site.years, label: "years on the tools" },
               { figure: `${photographCount}`, label: "photographs of real jobs" },
               { figure: "2yr", label: "workmanship guarantee" },
-              { figure: "£2m", label: "public liability cover" },
+              { figure: "£1m", label: "public liability cover" },
             ].map((stat, index) => (
               <div
                 key={stat.label}

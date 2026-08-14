@@ -203,7 +203,7 @@ export const services: Service[] = [
       "Evening, weekend and phased working so trading is not interrupted",
       "Units and voids turned around between tenancies to a deadline",
       "Suspended ceilings, screed floors and service runs worked around",
-      "£2m public liability cover, site inductions and method statements as required",
+      "£1m public liability cover, site inductions and method statements as required",
       "One point of contact and a written programme before anyone arrives",
     ],
     faqs: [
