@@ -23,16 +23,44 @@ function floatingStamp(isoDate: string, hour: number, minute: number): string {
   return `${isoDate.replace(/-/g, "")}T${hh}${mm}00`;
 }
 
-/** Folds long lines at 75 octets, as iCalendar requires. */
+/**
+ * Folds long lines at 75 OCTETS, as RFC 5545 §3.1 requires.
+ *
+ * OCTETS, NOT CHARACTERS, and the difference is not academic here. This used to
+ * measure and slice with String.length, which counts UTF-16 code units: the em
+ * dash in "SUMMARY:Site visit — …" is one code unit and three UTF-8 bytes, so
+ * an ordinary booking — a full name and a street address — emitted a 77-octet
+ * line while the code believed it had cut at 75. The file is serialised as
+ * UTF-8 before it is base64'd onto the email, so octets are what a calendar
+ * client actually counts.
+ *
+ * Cutting on a code POINT boundary matters for the same reason in the other
+ * direction: slicing by code unit can split a surrogate pair down the middle
+ * and put half an emoji at the end of one line and half at the start of the
+ * next, which is no longer valid UTF-8 in either. Iterating the string with
+ * for..of walks code points, so a character is either wholly in this chunk or
+ * wholly in the next.
+ */
 function fold(line: string): string {
-  if (line.length <= 75) return line;
-  const parts = [line.slice(0, 75)];
-  let rest = line.slice(75);
-  while (rest.length > 74) {
-    parts.push(` ${rest.slice(0, 74)}`);
-    rest = rest.slice(74);
+  const size = (text: string) => new TextEncoder().encode(text).length;
+  if (size(line) <= 75) return line;
+
+  const parts: string[] = [];
+  let chunk = "";
+  // The first line may use 75 octets; every continuation spends one on its
+  // leading space.
+  let budget = 75;
+
+  for (const char of line) {
+    if (size(chunk) + size(char) > budget) {
+      parts.push(parts.length === 0 ? chunk : ` ${chunk}`);
+      chunk = "";
+      budget = 74;
+    }
+    chunk += char;
   }
-  if (rest) parts.push(` ${rest}`);
+  if (chunk) parts.push(parts.length === 0 ? chunk : ` ${chunk}`);
+
   return parts.join("\r\n");
 }
 

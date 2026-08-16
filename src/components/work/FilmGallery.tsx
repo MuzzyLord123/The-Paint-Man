@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, LazyMotion, domMax, m, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  LazyMotion,
+  domMax,
+  m,
+  useDragControls,
+  useReducedMotion,
+} from "motion/react";
 import { Play, X } from "@phosphor-icons/react/dist/ssr";
 import { blurTone } from "@/lib/images";
 import { youTubePoster } from "@/lib/youtube";
 import { films, filmSlots, showFilmSlots, type Film } from "@/data/films";
+import { useBreakpointClose } from "@/lib/use-breakpoint-close";
 
 /**
  * A film's poster, with the one failure YouTube's thumbnails actually have.
@@ -296,6 +304,9 @@ function FilmGalleryDesktop() {
 
 function FilmGalleryMobile() {
   const [open, setOpen] = useState<Film | null>(null);
+  /* At 1024px and up this gallery is display:none, which would leave the film
+     sheet's scroll lock on the page — see use-breakpoint-close.ts. */
+  useBreakpointClose("(max-width: 1023.98px)", useCallback(() => setOpen(null), []));
 
   return (
     <div className="lg:hidden">
@@ -344,6 +355,9 @@ function FilmGalleryMobile() {
 function FilmSheet({ film, onClose }: { film: Film | null; onClose: () => void }) {
   const reduced = useReducedMotion();
   const sheetRef = useRef<HTMLDivElement>(null);
+  /* Handle-only drag, for the same reason as the project sheet — see the note
+     on the sheet element in GalleryMobile.tsx. */
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (!film) return;
@@ -413,15 +427,26 @@ function FilmSheet({ film, onClose }: { film: Film | null; onClose: () => void }
             animate={{ y: 0 }}
             exit={reduced ? undefined : { y: "100%" }}
             transition={{ duration: reduced ? 0 : 0.4, ease: [0.16, 1, 0.3, 1] }}
+            /* Dragged by the handle only, so the sheet body keeps native touch
+               scrolling — a plain drag="y" sets touch-action: pan-x here and
+               a phone cannot scroll the sheet at all. See GalleryMobile.tsx. */
             drag={reduced ? false : "y"}
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.55 }}
             onDragEnd={(_, info) => {
               if (info.offset.y > 130 || info.velocity.y > 650) onClose();
             }}
+            style={{ touchAction: "pan-y" }}
             className="absolute inset-x-0 bottom-0 max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-[4px] bg-paper outline-none"
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-4 bg-paper/95 px-5 pt-3 pb-2 backdrop-blur-sm">
+            <div
+              onPointerDown={(event) => {
+                if (!reduced) dragControls.start(event);
+              }}
+              className="sticky top-0 z-10 flex touch-none items-center justify-between gap-4 bg-paper/95 px-5 pt-3 pb-2 backdrop-blur-sm"
+            >
               <span
                 aria-hidden="true"
                 className="absolute inset-x-0 top-2 mx-auto h-1 w-10 rounded-full bg-ink/20"

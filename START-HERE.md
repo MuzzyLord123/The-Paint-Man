@@ -2,21 +2,24 @@
 
 The whole site is in this folder. Nothing else is needed.
 
-> ## ⚠ PREVIEW MODE IS ON
+> ## PREVIEW MODE IS OFF — this deploys as the full site
 >
-> As shipped, this deploys as a **preview**: the home page, the photo gallery
-> and the video gallery work; Services, About, Quote, Contact, Advice and
-> Privacy are greyed out in the menu with a note saying they are part of the
-> full build. Typing one of those addresses shows the same note rather than the
-> real page.
+> As shipped, every page is live: Services, About, Quote, Contact, Advice and
+> Privacy are all reachable, every "Get a Free Quote" button goes to the real
+> enquiry form, and search engines are allowed to index the site. There is
+> nothing to switch on before launch.
 >
-> **Every one of those pages is finished.** This is a switch, not missing work.
->
-> ### To turn it off — the whole site, no other changes
+> ### To put the preview back, for a second prospect
 >
 > In Vercel: **Settings → Environment Variables**, add
-> `NEXT_PUBLIC_PREVIEW_MODE` = `0`, then redeploy.
-> (Or in code: set `PREVIEW_DEFAULT` to `false` in `src/config/preview.ts`.)
+> `NEXT_PUBLIC_PREVIEW_MODE` = `1`, then redeploy. The home page and the two
+> galleries stay live; everything else greys out in the menu behind a "part of
+> the full build" note, and the whole site goes noindex.
+>
+> Set it back to `0`, or delete it, to go live again. The environment variable
+> wins over the code default either way, so the switch works in both directions
+> without an edit. `PREVIEW_DEFAULT` in `src/config/preview.ts` is already
+> `false` — that is what "off as shipped" means.
 >
 > ### Two things to know while it is on
 >

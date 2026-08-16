@@ -49,11 +49,18 @@ export default function ContactPage() {
                   Email
                 </dt>
                 <dd className="mt-2">
+                  {/* min-w-0 + break-all, because the address does not wrap on
+                      its own. jamesdevonshireyoung@btinternet.com is 35
+                      unbreakable characters; as the min-content of a grid item
+                      it inflated the whole column to ~345px, pushing the h1,
+                      the intro copy and the map 45px past a 320px viewport —
+                      and html/body carry overflow-x: clip, so none of it could
+                      be scrolled to. */}
                   <a
                     href={`mailto:${site.email}`}
-                    className="inline-flex items-center gap-3 text-[1.0625rem] text-ink-soft transition-colors duration-200 hover:text-accent"
+                    className="inline-flex min-w-0 items-center gap-3 text-[1.0625rem] break-all text-ink-soft transition-colors duration-200 hover:text-accent"
                   >
-                    <EnvelopeSimple weight="light" className="size-5 text-accent" />
+                    <EnvelopeSimple weight="light" className="size-5 shrink-0 text-accent" />
                     {site.email}
                   </a>
                 </dd>

@@ -356,8 +356,21 @@ export function QuoteForm() {
           </button>
         )}
 
+        {/* THE KEYS ARE LOAD-BEARING, and this is not a lint appeasement.
+            Continue and Send occupy the same position in this ternary, so
+            without distinct keys React reconciles them as ONE element and
+            simply mutates the existing DOM node's `type` from "button" to
+            "submit". next() is async — it awaits trigger() before setStep, so
+            React commits that mutation while the browser is still processing
+            the very click that called it. The browser then runs its activation
+            behaviour against a node that has become a submit button and posts
+            the form: arriving at step 4 every field was already flagged with
+            Zod's raw "Invalid input", and Back-then-Continue fired a real
+            enquiry with nobody having pressed Send — sending the customer's
+            lead twice. Distinct keys make React mount a fresh node instead. */}
         {step < STEP_FIELDS.length ? (
           <button
+            key="continue"
             type="button"
             onClick={next}
             className="inline-flex h-12 items-center gap-2 rounded-full bg-accent px-7 text-[0.9375rem] font-semibold whitespace-nowrap text-on-accent shadow-accent transition-[background-color,transform] duration-200 hover:bg-accent-bright active:translate-y-px active:scale-[0.98]"
@@ -367,6 +380,7 @@ export function QuoteForm() {
           </button>
         ) : (
           <button
+            key="send"
             type="submit"
             disabled={status === "sending"}
             className="relative inline-flex h-12 items-center overflow-hidden rounded-full bg-accent px-7 text-[0.9375rem] font-semibold whitespace-nowrap text-on-accent shadow-accent transition-[background-color,transform] duration-200 hover:bg-accent-bright active:translate-y-px active:scale-[0.98] disabled:cursor-wait disabled:opacity-90"

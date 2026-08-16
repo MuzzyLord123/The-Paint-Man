@@ -152,14 +152,22 @@ export function BookingForm() {
                   { after: addDays(today, 28) },
                 ]}
                 classNames={dayPickerClassNames}
+                /* disabled is DERIVED from aria-disabled, and it has to be.
+                   react-day-picker v9 marks an inert month arrow with
+                   aria-disabled and tabIndex=-1 but never the disabled
+                   attribute, while the classNames above dim it with Tailwind's
+                   `disabled:` variant — which compiles to :disabled and so
+                   never matched. The arrow off the start of the range rendered
+                   at full opacity with its hover treatment intact: it looked
+                   live, and clicking it did nothing. */
                 components={{
                   PreviousMonthButton: (props) => (
-                    <button {...props} type="button">
+                    <button {...props} type="button" disabled={props["aria-disabled"] === true}>
                       <CaretLeft weight="light" className="size-4" />
                     </button>
                   ),
                   NextMonthButton: (props) => (
-                    <button {...props} type="button">
+                    <button {...props} type="button" disabled={props["aria-disabled"] === true}>
                       <CaretRight weight="light" className="size-4" />
                     </button>
                   ),

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, LazyMotion, domMax, m, useReducedMotion } from "motion/react";
 import { SwatchFilter, type Filter } from "./SwatchFilter";
 import { Lightbox } from "./Lightbox";
 import { blurTone } from "@/lib/images";
 import { projects, type Project } from "@/data/projects";
+import { useBreakpointClose } from "@/lib/use-breakpoint-close";
 
 /**
  * Desktop gallery (≥1024px).
@@ -115,6 +116,10 @@ function layout(count: number): { span: string; height: string; sizes: string }[
 export function GalleryDesktop() {
   const [filter, setFilter] = useState<Filter>("all");
   const [open, setOpen] = useState<Project | null>(null);
+  /* Below 1024px this whole gallery is display:none — see
+     use-breakpoint-close.ts for why that would otherwise strand the scroll
+     lock. */
+  useBreakpointClose("(min-width: 1024px)", useCallback(() => setOpen(null), []));
   const reduced = useReducedMotion();
 
   const shown = filter === "all" ? projects : projects.filter((p) => p.category === filter);
@@ -169,6 +174,13 @@ export function GalleryDesktop() {
                         alt={image.alt}
                         fill
                         sizes={cell.sizes}
+                        /* The first cell is this page's LCP element. Without
+                           this it rendered loading="lazy", so the largest
+                           thing on the page waited for layout before its
+                           request even started — measured at 3.5s to LCP on a
+                           throttled connection against 1.0s for /services,
+                           which already gives its first photograph priority. */
+                        priority={index === 0}
                         placeholder="blur"
                         blurDataURL={blurTone(image.tone)}
                         className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"

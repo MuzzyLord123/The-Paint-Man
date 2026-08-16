@@ -43,7 +43,10 @@ export function FeaturedWork() {
               delay={0.05 * index}
               className={`${OFFSETS[index] ?? "lg:mt-0"} ${index === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}
             >
-              <Link href={`/work#${project.slug}`} className="group block">
+              {/* scroll={false}: HashTarget resolves /work#slug to whichever
+                  gallery is on screen, and Next's own scroll reset would
+                  otherwise land on the top of the page instead. */}
+              <Link href={`/work#${project.slug}`} scroll={false} className="group block">
                 <div className="frame-reveal relative overflow-hidden rounded-[4px] bg-plaster">
                   <Image
                     src={image.src}

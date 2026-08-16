@@ -23,6 +23,15 @@ import { CTA_HREF, CTA_LABEL, site } from "@/config/site";
  */
 export function MobileActionBar() {
   const barRef = useRef<HTMLDivElement>(null);
+  /* True while keyboard focus is inside the bar. The hidden state is only a
+     140px translate — the links stay in the tab order and stay operable — so
+     tabbing down a page used to land on Call and then Get a Free Quote while
+     both sat below the bottom edge of the screen: two invisible focus stops
+     that still navigated on Enter. Hiding them from the tab order instead
+     would take the site's two most important mobile actions away from anyone
+     using a keyboard, so focus REVEALS the bar, exactly as scrolling up does,
+     and this flag stops the scroll handler hiding it again underneath them. */
+  const focusWithin = useRef(false);
 
   useEffect(() => {
     let previous = window.scrollY;
@@ -38,6 +47,10 @@ export function MobileActionBar() {
         const bar = barRef.current;
         if (!bar) return;
 
+        if (focusWithin.current) {
+          bar.dataset.hidden = "false";
+          return;
+        }
         if (current < 140) bar.dataset.hidden = "false";
         else if (delta > 5) bar.dataset.hidden = "true";
         else if (delta < -5) bar.dataset.hidden = "false";
@@ -57,6 +70,14 @@ export function MobileActionBar() {
       ref={barRef}
       data-hidden="false"
       data-mobile-action-bar
+      onFocusCapture={() => {
+        focusWithin.current = true;
+        if (barRef.current) barRef.current.dataset.hidden = "false";
+      }}
+      onBlurCapture={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node)) return;
+        focusWithin.current = false;
+      }}
       className="action-bar fixed inset-x-0 bottom-0 z-[80] lg:hidden"
     >
       <div className="border-t border-hairline bg-paper/95 backdrop-blur-sm">

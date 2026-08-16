@@ -29,11 +29,14 @@ export function SiteFooter() {
                 <Phone weight="light" className="size-5 text-accent" />
                 {site.phone}
               </a>
+              {/* min-w-0 + break-all — the unbreakable address widened this
+                  column past a 320px viewport, taking the intro paragraph with
+                  it. See the same fix on /contact. */}
               <a
                 href={`mailto:${site.email}`}
-                className="inline-flex items-center gap-2.5 text-[0.95rem] text-ink-soft transition-colors duration-200 max-lg:min-h-11 hover:text-accent"
+                className="inline-flex min-w-0 items-center gap-2.5 text-[0.95rem] break-all text-ink-soft transition-colors duration-200 max-lg:min-h-11 hover:text-accent"
               >
-                <EnvelopeSimple weight="light" className="size-5 text-accent" />
+                <EnvelopeSimple weight="light" className="size-5 shrink-0 text-accent" />
                 {site.email}
               </a>
               <p className="inline-flex items-center gap-2.5 text-[0.95rem] text-ink-soft">

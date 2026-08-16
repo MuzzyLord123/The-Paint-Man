@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, LazyMotion, domMax, m, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  LazyMotion,
+  domMax,
+  m,
+  useDragControls,
+  useReducedMotion,
+} from "motion/react";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import { SwatchFilter, type Filter } from "./SwatchFilter";
 import { blurTone } from "@/lib/images";
 import { CTA_HREF, CTA_LABEL } from "@/config/site";
 import { projects, type Project } from "@/data/projects";
+import { useBreakpointClose } from "@/lib/use-breakpoint-close";
 
 /**
  * Mobile gallery (<1024px) — a different composition, not the desktop grid
@@ -22,6 +30,9 @@ import { projects, type Project } from "@/data/projects";
 export function GalleryMobile() {
   const [filter, setFilter] = useState<Filter>("all");
   const [open, setOpen] = useState<Project | null>(null);
+  /* At 1024px and up this whole gallery is display:none — see
+     use-breakpoint-close.ts. */
+  useBreakpointClose("(max-width: 1023.98px)", useCallback(() => setOpen(null), []));
 
   const shown = filter === "all" ? projects : projects.filter((p) => p.category === filter);
 
@@ -93,6 +104,9 @@ export function GalleryMobile() {
 function ProjectSheet({ project, onClose }: { project: Project | null; onClose: () => void }) {
   const reduced = useReducedMotion();
   const sheetRef = useRef<HTMLDivElement>(null);
+  /* The drag starts from the handle, never from the sheet body — see the note
+     on the sheet element below. */
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (!project) return;
@@ -170,16 +184,40 @@ function ProjectSheet({ project, onClose }: { project: Project | null; onClose: 
             animate={{ y: 0 }}
             exit={reduced ? undefined : { y: "100%" }}
             transition={{ duration: reduced ? 0 : 0.4, ease: [0.16, 1, 0.3, 1] }}
+            /* THE SHEET IS DRAGGABLE ONLY BY ITS HANDLE, and that is what makes
+               it scrollable at all. This element is both the drag surface and
+               the scroll container; with a plain drag="y" Motion sets
+               touch-action: pan-x on it, which tells the browser it may pan
+               horizontally and nothing else — so on a phone, the device this
+               whole bottom-sheet UI exists for, a vertical swipe scrolled
+               nothing. The sheet overflows by 166-223px on every project, so
+               the title, the detail, the duration and the "Get a Free Quote"
+               CTA at the bottom were unreachable by touch on an iPhone SE.
+
+               dragListener={false} stops Motion listening on the body, the
+               handle below starts the drag through dragControls, and
+               touchAction is restored to pan-y so the body scrolls natively.
+               Drag-to-dismiss still works, from the handle where a sheet's
+               grab affordance actually is. */
             drag={reduced ? false : "y"}
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.55 }}
             onDragEnd={(_, info) => {
               if (info.offset.y > 130 || info.velocity.y > 650) onClose();
             }}
+            style={{ touchAction: "pan-y" }}
             className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-[4px] bg-paper outline-none"
           >
-            {/* Drag handle */}
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-4 bg-paper/95 px-5 pt-3 pb-2 backdrop-blur-sm">
+            {/* Drag handle — and the only thing that starts a drag. touch-none
+                so the gesture is not fighting the sheet's own scrolling. */}
+            <div
+              onPointerDown={(event) => {
+                if (!reduced) dragControls.start(event);
+              }}
+              className="sticky top-0 z-10 flex touch-none items-center justify-between gap-4 bg-paper/95 px-5 pt-3 pb-2 backdrop-blur-sm"
+            >
               <span
                 aria-hidden="true"
                 className="absolute inset-x-0 top-2 mx-auto h-1 w-10 rounded-full bg-ink/15"

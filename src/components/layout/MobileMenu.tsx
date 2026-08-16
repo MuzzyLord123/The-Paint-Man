@@ -335,7 +335,19 @@ export function MobileMenu() {
                 className="mt-3 flex snap-x gap-3 overflow-x-auto overscroll-x-contain pb-1">
                 {featuredProjects.slice(0, 5).map((project) => (
                   <li key={project.slug} className="w-[42vw] max-w-[11rem] shrink-0 snap-start">
-                    <Link href={`/work#${project.slug}`} onClick={close} className="block">
+                    {/* scroll={false} because HashTarget does the scrolling.
+                        The gallery cards carry prefixed ids (mobile-…/desktop-…)
+                        so Next's router never finds an element matching the raw
+                        slug and falls back to scrolling to the TOP — which,
+                        arriving after HashTarget's own scroll, simply overrode
+                        it: from anywhere down /work the tap landed at 0 rather
+                        than on the project. */}
+                    <Link
+                      href={`/work#${project.slug}`}
+                      scroll={false}
+                      onClick={close}
+                      className="block"
+                    >
                       <div className="relative aspect-[4/3] overflow-hidden rounded-[4px] bg-plaster">
                         <Image
                           src={project.images[0].src}

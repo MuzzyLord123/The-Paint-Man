@@ -73,6 +73,14 @@ export function Splash() {
           width={669}
           height={280}
           loading="eager"
+          /* fetchPriority low is what actually keeps the logo out of the head's
+             preload list. React 19's streaming renderer auto-preloads every
+             server-rendered <img> unless loading is "lazy" or fetchPriority is
+             "low", so `loading="eager"` no longer avoids the preload the note
+             above describes — the logo was being preloaded ahead of the hero on
+             every route, which is exactly the regression that note records
+             fixing. Eager still starts the fetch immediately. */
+          fetchPriority="low"
           sizes="(min-width: 1024px) 420px, (min-width: 640px) 340px, 260px"
           className="h-auto w-[260px] sm:w-[340px] lg:w-[420px]"
         />

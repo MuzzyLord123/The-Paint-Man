@@ -842,8 +842,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* The FINISHED state, not the rest state — the same treatment .nav-shell gets
+     further down, and for the same reason. `animation: none` alone left the
+     strip at its 2.375rem starting height for ever in engines that support
+     scroll timelines, so a reduced-motion visitor carried a 114px fixed header
+     down every page with a translucent strip floating over the content, while
+     everyone else's collapsed to nothing on scroll. */
   .nav-utility {
     animation: none;
+    height: 0;
+    opacity: 0;
   }
   .mega-panel,
   .mega-item,

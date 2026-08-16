@@ -81,10 +81,19 @@ export function DesktopNav() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  // A short grace period, so crossing the gap to the panel does not close it.
+  /* A short grace period, so crossing the gap to the panel does not close it.
+     The timer re-checks focus when it fires: a pointer brushing off the header
+     used to close the panel out from under a keyboard user whose focus was
+     inside it, leaving focus on an invisible link that Enter still followed.
+     Pointer and keyboard are independent reasons to keep it open, so the
+     mouse's exit does not get to overrule the keyboard's presence — the same
+     lesson as the reviews rail's hold state. */
   const scheduleClose = () => {
     window.clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => setOpen(false), 140);
+    closeTimer.current = window.setTimeout(() => {
+      if (headerRef.current?.contains(document.activeElement)) return;
+      setOpen(false);
+    }, 140);
   };
   const cancelClose = () => window.clearTimeout(closeTimer.current);
 
@@ -333,7 +342,16 @@ export function DesktopNav() {
                   className="mega-item border-b border-hairline/60"
                   style={{ transitionDelay: `${0.05 + index * 0.035}s` }}
                 >
-                  <Link href={`/services#${service.id}`} className="mega-row group">
+                  {/* Closes the panel itself. The pathname effect cannot: from
+                      /services these are same-path hash links, so it never
+                      re-runs and the open panel stayed sitting over the very
+                      section the click scrolled to. Same fix, same reason, as
+                      the mobile menu's links. */}
+                  <Link
+                    href={`/services#${service.id}`}
+                    onClick={() => setOpen(false)}
+                    className="mega-row group"
+                  >
                     <span className="mega-row-rail" aria-hidden="true" />
                     <span className="mega-row-wash" aria-hidden="true" />
                     <span className="relative z-1 flex items-start gap-4">
@@ -376,7 +394,7 @@ export function DesktopNav() {
               </div>
               <div className="tape-line mt-3" aria-hidden="true" />
 
-              <Link href="/work" className="card-edge group mt-6 block">
+              <Link href="/work" onClick={() => setOpen(false)} className="card-edge group mt-6 block">
                 {/* 16/10, not 4/3. The taller crop pushed the photograph
                     column past the list beside it and left an inch of dead
                     black under the trades — the two columns now finish within
@@ -434,6 +452,7 @@ export function DesktopNav() {
             </ul>
             <Link
               href="/services"
+              onClick={() => setOpen(false)}
               className="group inline-flex items-center gap-2 font-medium text-ink transition-colors duration-200 hover:text-accent"
             >
               All {services.length} services in detail

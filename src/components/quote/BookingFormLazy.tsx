@@ -62,7 +62,13 @@ function BookingSkeleton() {
       </div>
       <div className="grid gap-6">
         <div className="h-4 w-40 rounded-full bg-plaster" />
-        <div className="flex gap-2.5">
+        {/* flex-wrap, matching the real ChipGroup's wrapping row. Three fixed
+            112px blocks in a non-wrapping flex row have a 356px min-content,
+            which as a grid item forced the whole skeleton — and the viewport —
+            80px wider than a 320px phone, so the placeholder for a form that
+            promises to shift nothing on arrival was itself the widest thing on
+            the page. */}
+        <div className="flex flex-wrap gap-2.5">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="h-11 w-28 rounded-full bg-plaster" />
           ))}

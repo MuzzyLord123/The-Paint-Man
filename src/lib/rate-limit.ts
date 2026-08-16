@@ -52,10 +52,39 @@ const GLOBAL_PER_DAY = 40;
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
-/** Drops expired buckets so a long-lived instance cannot grow unboundedly. */
+/** Hard ceiling on tracked keys, per map. */
+const MAX_KEYS = 5000;
+
+/**
+ * Bounds the map, expired buckets first.
+ *
+ * EXPIRY ALONE IS NOT A BOUND, which is what this used to be and what its
+ * comment still claimed. Under the only condition that actually grows these
+ * maps — a flood of distinct keys inside one window — every bucket is still
+ * live, so an expiry-only sweep frees nothing while rescanning the whole map on
+ * every single call: measured at 6ms per 5,000 calls rising to over a second as
+ * the map grew, which is quadratic work on the request path, and the map grew
+ * anyway.
+ *
+ * So expired buckets go first, and if that was not enough, the oldest live ones
+ * go too. Evicting a live bucket forgives whatever that key had spent, which is
+ * the right way to be wrong: the global daily cap below is the backstop that
+ * actually protects the email allowance, and it cannot be evicted.
+ *
+ * Map iteration is insertion-ordered, so "oldest first" is just the front of
+ * the map.
+ */
 function sweep(map: Map<string, Bucket>, now: number) {
-  if (map.size < 5000) return;
+  if (map.size < MAX_KEYS) return;
   for (const [key, bucket] of map) if (bucket.resetAt <= now) map.delete(key);
+  if (map.size < MAX_KEYS) return;
+  const excess = map.size - MAX_KEYS + 1;
+  let dropped = 0;
+  for (const key of map.keys()) {
+    if (dropped >= excess) break;
+    map.delete(key);
+    dropped += 1;
+  }
 }
 
 function take(map: Map<string, Bucket>, key: string, limit: number, window: number, now: number) {
@@ -81,8 +110,20 @@ export function consumeLeadAllowance(ip: string, email: string, now = Date.now()
   if (globalDay.resetAt <= now) globalDay = { count: 0, resetAt: now + DAY };
   if (globalDay.count >= GLOBAL_PER_DAY) return { ok: false, reason: "global" };
 
+  /* The email cap is checked BEFORE the IP bucket is created. take() inserts on
+     first sight of a key, so doing the IP first meant every rejected submission
+     still minted a bucket — a flood on one email address filled the IP map with
+     entries for requests that were never allowed through. Reading the email
+     bucket without consuming it keeps the two independent: nothing is spent
+     unless both caps allow the send. */
+  const emailKey = email.toLowerCase();
+  const emailBucket = perEmail.get(emailKey);
+  if (emailBucket && emailBucket.resetAt > now && emailBucket.count >= EMAIL_PER_DAY) {
+    return { ok: false, reason: "email" };
+  }
+
   if (!take(perIp, ip, IP_PER_HOUR, HOUR, now)) return { ok: false, reason: "ip" };
-  if (!take(perEmail, email.toLowerCase(), EMAIL_PER_DAY, DAY, now)) {
+  if (!take(perEmail, emailKey, EMAIL_PER_DAY, DAY, now)) {
     return { ok: false, reason: "email" };
   }
 

@@ -20,7 +20,12 @@
 import { launchBrowser } from "./browser.mjs";
 import fs from "node:fs";
 
-const BASE = process.env.BASE_URL || "http://127.0.0.1:3111";
+/* 3100, like every other audit script and like the port README, START-HERE and
+   DEPLOY-VERCEL all tell you to start the server on. This defaulted to 3111,
+   so following the documented hand-over — `npx next start -p 3100` then
+   `npm run audit:images` — crashed with ERR_CONNECTION_REFUSED before checking
+   a single photograph. */
+const BASE = process.env.BASE_URL || "http://127.0.0.1:3100";
 const ROUTES = ["/", "/work", "/videos", "/services", "/about", "/contact", "/quote", "/blog"];
 
 const browser = await launchBrowser();

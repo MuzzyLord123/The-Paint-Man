@@ -277,8 +277,20 @@ export function Testimonials() {
           role="group"
           aria-roledescription="carousel"
           aria-label="Customer reviews"
-          onMouseEnter={() => setEngaged(true)}
-          onMouseLeave={() => setEngaged(false)}
+          /* POINTER EVENTS, FILTERED TO A REAL MOUSE. With onMouseEnter, a
+             single tap on a phone fired the browser's synthesized mouseenter,
+             set engaged, and nothing ever cleared it: touch scrolling fires no
+             mouse compat events, so the rail froze for the rest of the visit
+             while the control still showed the Pause icon, claiming it was
+             running. Hover is a pointer concept and phones do not have it, so
+             only a mouse may set this. Focus is handled separately below and
+             is genuine on every device. */
+          onPointerEnter={(event) => {
+            if (event.pointerType === "mouse") setEngaged(true);
+          }}
+          onPointerLeave={(event) => {
+            if (event.pointerType === "mouse") setEngaged(false);
+          }}
           onFocusCapture={() => setEngaged(true)}
           onBlurCapture={(event) => {
             if (!event.currentTarget.contains(event.relatedTarget as Node)) setEngaged(false);
