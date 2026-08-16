@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Reveal } from "@/components/motion/Reveal";
 import { brands } from "@/data/brands";
+import { resolveBrandLogo } from "@/lib/brand-logos";
 
 /**
  * The paint brands strip — the band under the hero saying what goes on the wall.
@@ -33,12 +34,19 @@ import { brands } from "@/data/brands";
  * one. A name is also the honest fallback: it is true, where a redrawn
  * approximation of somebody's mark gets worse the closer it looks.
  *
- * Dropping a file into public/brands and filling in `logo` in the data file
- * swaps that brand to its real mark on a plate, one at a time, with no change
- * here — so the two states can coexist while the artwork comes in.
+ * Dropping a file into public/brands is the ONLY step — the logo is discovered
+ * on the filesystem at build time, so no code changes hands to switch a brand
+ * over, and the two states coexist while the artwork comes in one file at a
+ * time. See src/lib/brand-logos.ts.
  */
-export function PaintBrands() {
+export async function PaintBrands() {
   if (brands.length === 0) return null;
+
+  /* Server component, so this is a build-time read that gets baked into the
+     static HTML — a visitor never touches the filesystem. */
+  const withLogos = await Promise.all(
+    brands.map(async (brand) => ({ ...brand, logo: await resolveBrandLogo(brand.slug) })),
+  );
 
   return (
     <section
@@ -64,7 +72,7 @@ export function PaintBrands() {
               like a typo. Generous gaps say the same thing and cannot wrap
               wrongly. */}
           <ul className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4 lg:gap-x-12">
-            {brands.map((brand) => (
+            {withLogos.map((brand) => (
               <li key={brand.name} className="flex items-center">
                 {brand.logo ? (
                   /* The plate exists ONLY to host a mark. These five logos are
@@ -80,10 +88,20 @@ export function PaintBrands() {
                       alt={brand.name}
                       width={brand.logo.width}
                       height={brand.logo.height}
-                      /* Contained and capped, so a wide wordmark and a square
-                         tile both sit on the same optical line whatever their
-                         proportions. */
-                      className="max-h-10 w-auto object-contain lg:max-h-12"
+                      unoptimized={brand.logo.unoptimized}
+                      /* THE ASPECT RATIO IS SET EXPLICITLY, from the real file
+                         dimensions read at build time. A plain `w-auto` works
+                         for a raster, whose intrinsic size the browser knows
+                         from the bytes — but an SVG that carries only a
+                         viewBox has no intrinsic width, and the image
+                         collapsed to 0x0: a logo that silently vanished, on
+                         the format most brand kits ship. Fixing the height and
+                         declaring the ratio makes the width deterministic for
+                         both. max-w keeps a very wide wordmark from crowding
+                         out the rest of the row; object-contain letterboxes
+                         rather than crops if it hits that. */
+                      style={{ aspectRatio: `${brand.logo.width} / ${brand.logo.height}` }}
+                      className="h-10 w-auto max-w-[9rem] object-contain lg:h-12 lg:max-w-[11rem]"
                     />
                   </span>
                 ) : (

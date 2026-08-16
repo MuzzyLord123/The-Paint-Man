@@ -22,19 +22,19 @@ renders one taller than 56px.
 
 ## How to switch one on
 
-Add the `logo` field to that brand in `src/data/brands.ts`, with the file's real
-pixel dimensions:
+Put the file in this folder, named after the brand's slug, and rebuild. That is
+the whole job — **there is no code to change.** The strip reads this folder at
+build time, finds `dulux.png`, reads its real dimensions and renders it; the
+other four carry on as wordmarks until their files arrive, so they can go in one
+at a time.
 
-```ts
-{
-  name: "Dulux",
-  site: "https://www.dulux.co.uk",
-  logo: { src: "/brands/dulux.svg", width: 600, height: 600 },
-},
-```
+Accepted extensions, in preference order: `.svg`, `.webp`, `.png`, `.jpg`.
 
-That is the whole job. The strip swaps that brand from its wordmark to the image
-and leaves the other four alone, so they can go in one at a time.
+Everything after that is handled: SVGs are served straight from this origin
+rather than through the image optimiser (deliberate — the optimiser is not
+allowed to process arbitrary SVG), rasters are optimised normally, and the
+aspect ratio is taken from the file so a wide wordmark and a square tile both
+land on the same optical line.
 
 ## Two things the strip already handles
 
