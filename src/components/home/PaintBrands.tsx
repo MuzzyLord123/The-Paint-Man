@@ -63,58 +63,84 @@ export async function PaintBrands() {
           </h2>
           <div className="tape-line mt-5" aria-hidden="true" />
         </Reveal>
+      </div>
 
-        <Reveal>
-          {/* SPACE IS THE SEPARATOR, not a character. An accent dot between
-              names is the site's own byline device and it read well on one
-              line — but this row wraps on a phone, and any between-items
-              separator then dangles at the start of the new line, which looks
-              like a typo. Generous gaps say the same thing and cannot wrap
-              wrongly. */}
-          <ul className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4 lg:gap-x-12">
-            {withLogos.map((brand) => (
-              <li key={brand.name} className="flex items-center">
-                {brand.logo ? (
-                  /* The plate exists ONLY to host a mark. These five logos are
-                     drawn for their own grounds — white on slate, near-black on
-                     white, a navy tile, a blue badge — and bg-ink is this dark
-                     site's near-white token, so each one is shown as its owner
-                     drew it rather than recoloured to suit the page. */
-                  <span className="grid h-16 place-items-center rounded-[4px] border border-ink/15 bg-ink px-4 lg:h-20 lg:px-5">
-                    <Image
-                      src={brand.logo.src}
-                      /* The brand name, not "logo" — a screen reader saying
-                         "Dulux" is the information; "Dulux logo" is furniture. */
-                      alt={brand.name}
-                      width={brand.logo.width}
-                      height={brand.logo.height}
-                      unoptimized={brand.logo.unoptimized}
-                      /* THE ASPECT RATIO IS SET EXPLICITLY, from the real file
-                         dimensions read at build time. A plain `w-auto` works
-                         for a raster, whose intrinsic size the browser knows
-                         from the bytes — but an SVG that carries only a
-                         viewBox has no intrinsic width, and the image
-                         collapsed to 0x0: a logo that silently vanished, on
-                         the format most brand kits ship. Fixing the height and
-                         declaring the ratio makes the width deterministic for
-                         both. max-w keeps a very wide wordmark from crowding
-                         out the rest of the row; object-contain letterboxes
-                         rather than crops if it hits that. */
-                      style={{ aspectRatio: `${brand.logo.width} / ${brand.logo.height}` }}
-                      className="h-10 w-auto max-w-[9rem] object-contain lg:h-12 lg:max-w-[11rem]"
-                    />
-                  </span>
-                ) : (
-                  <span className="font-display text-[1.125rem] leading-tight font-semibold tracking-[-0.02em] whitespace-nowrap text-ink lg:text-[1.375rem]">
-                    {brand.name}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </Reveal>
+      {/* FULL-BLEED, outside the shell, because a banner that stops at the text
+          column is not a banner. The band clips and masks its own edges — see
+          .marquee-band in globals.css. */}
+      <div
+        className="marquee-band relative mt-7 overflow-hidden"
+        /* The whole list, once, for anything that reads rather than looks. The
+           copies below are all aria-hidden, so this is said once however many
+           times it is drawn. */
+        aria-label={`Paint brands we use: ${brands.map((b) => b.name).join(", ")}`}
+      >
+        <div className="brand-marquee-track flex w-max items-center">
+          {/* TWO HALVES, and each half is the list repeated — both numbers are
+              load-bearing. The keyframes run -50% to 0, which is seamless only
+              if the track is exactly two identical halves, so the outer pair is
+              fixed at 2. The inner repeat exists because five short names are
+              narrower than a wide screen: one bare copy would leave the band
+              visibly empty for part of every loop. Three copies per half clears
+              a 2560px viewport with the names alone, and clears it further once
+              the logos land, since a plate is wider than a word. */}
+          {[0, 1].map((half) => (
+            <div key={half} aria-hidden="true" className="flex shrink-0 items-center">
+              {[0, 1, 2].map((copy) => (
+                <ul key={copy} className="flex shrink-0 items-center">
+                  {withLogos.map((brand) => (
+                    <li key={brand.name} className="flex shrink-0 items-center px-6 lg:px-9">
+                      {brand.logo ? (
+                        /* The plate exists ONLY to host a mark. These five
+                           logos are drawn for their own grounds — white on
+                           slate, near-black on white, a navy tile, a blue badge
+                           — and bg-ink is this dark site's near-white token, so
+                           each one is shown as its owner drew it rather than
+                           recoloured to suit the page. */
+                        <span className="grid h-16 place-items-center rounded-[4px] border border-ink/15 bg-ink px-4 lg:h-20 lg:px-5">
+                          <Image
+                            src={brand.logo.src}
+                            /* The brand name, not "logo" — a screen reader
+                               saying "Dulux" is the information; "Dulux logo"
+                               is furniture. */
+                            alt={brand.name}
+                            width={brand.logo.width}
+                            height={brand.logo.height}
+                            unoptimized={brand.logo.unoptimized}
+                            /* THE ASPECT RATIO IS SET EXPLICITLY, from the real
+                               file dimensions read at build time. A plain
+                               `w-auto` works for a raster, whose intrinsic size
+                               the browser knows from the bytes — but an SVG
+                               that carries only a viewBox has no intrinsic
+                               width, and the image collapsed to 0x0: a logo
+                               that silently vanished, in the format most brand
+                               kits ship. Fixing the height and declaring the
+                               ratio makes the width deterministic for both.
+                               max-w keeps a very wide wordmark from crowding
+                               the band; object-contain letterboxes rather than
+                               crops if it hits that. */
+                            style={{
+                              aspectRatio: `${brand.logo.width} / ${brand.logo.height}`,
+                            }}
+                            className="h-10 w-auto max-w-[9rem] object-contain lg:h-12 lg:max-w-[11rem]"
+                          />
+                        </span>
+                      ) : (
+                        <span className="font-display text-[1.125rem] leading-tight font-semibold tracking-[-0.02em] whitespace-nowrap text-ink lg:text-[1.375rem]">
+                          {brand.name}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
 
-        <p className="mt-5 text-[0.8125rem] leading-relaxed text-ink-mute">
+      <div className="shell">
+        <p className="mt-6 text-[0.8125rem] leading-relaxed text-ink-mute">
           {/* Says what the strip means and, just as importantly, what it does
               not. Every mark belongs to its manufacturer; using their paint is
               not the same as being endorsed by them, and the difference is

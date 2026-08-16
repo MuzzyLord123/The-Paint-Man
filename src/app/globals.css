@@ -1208,6 +1208,24 @@
   animation: marquee-run 32s linear infinite;
 }
 
+/* The paint-brands banner, sharing the trade marquee's keyframes and its
+   seamless -50% pair, with two differences that are content rather than taste.
+
+   SLOWER, because the track is longer. The animation moves the track by half
+   its own width in one duration, so pixels-per-second is a function of width:
+   at the trade band's 32s a track this long would whip past. 64s holds it at
+   roughly the same drift the trades have, which is what stops the page having
+   two marquees running at visibly different speeds.
+
+   LEFTWARD, by running the keyframes in reverse. The trades drift right; this
+   sits directly above them, and two bands travelling the same way in the same
+   eyeline read as one broken element that has torn in half. Opposite
+   directions read as two deliberate bands. */
+.brand-marquee-track {
+  will-change: transform;
+  animation: marquee-run 64s linear infinite reverse;
+}
+
 /* RIGHTWARD, AND SEAMLESS — the direction is the whole reason for the -50%
    start. The track holds two identical copies of the six trades, so it is twice
    as wide as it needs to be. Beginning at -50% puts the second copy where the
@@ -1539,9 +1557,10 @@
   .splash {
     display: none;
   }
-  /* The band holds still. Every word is already on screen at offset 0, so
-     nothing is hidden by stopping it. */
-  .marquee-track {
+  /* The bands hold still. Every word is already on screen at offset 0, so
+     nothing is hidden by stopping them. */
+  .marquee-track,
+  .brand-marquee-track {
     animation: none;
     transform: none;
   }
