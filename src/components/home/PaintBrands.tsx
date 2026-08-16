@@ -91,39 +91,59 @@ export async function PaintBrands() {
                   {withLogos.map((brand) => (
                     <li key={brand.name} className="flex shrink-0 items-center px-6 lg:px-9">
                       {brand.logo ? (
-                        /* The plate exists ONLY to host a mark. These five
-                           logos are drawn for their own grounds — white on
-                           slate, near-black on white, a navy tile, a blue badge
-                           — and bg-ink is this dark site's near-white token, so
-                           each one is shown as its owner drew it rather than
-                           recoloured to suit the page. */
-                        <span className="grid h-16 place-items-center rounded-[4px] border border-ink/15 bg-ink px-4 lg:h-20 lg:px-5">
-                          <Image
-                            src={brand.logo.src}
-                            /* The brand name, not "logo" — a screen reader
-                               saying "Dulux" is the information; "Dulux logo"
-                               is furniture. */
-                            alt={brand.name}
-                            width={brand.logo.width}
-                            height={brand.logo.height}
-                            unoptimized={brand.logo.unoptimized}
-                            /* THE ASPECT RATIO IS SET EXPLICITLY, from the real
-                               file dimensions read at build time. A plain
-                               `w-auto` works for a raster, whose intrinsic size
-                               the browser knows from the bytes — but an SVG
-                               that carries only a viewBox has no intrinsic
-                               width, and the image collapsed to 0x0: a logo
-                               that silently vanished, in the format most brand
-                               kits ship. Fixing the height and declaring the
-                               ratio makes the width deterministic for both.
-                               max-w keeps a very wide wordmark from crowding
-                               the band; object-contain letterboxes rather than
-                               crops if it hits that. */
-                            style={{
-                              aspectRatio: `${brand.logo.width} / ${brand.logo.height}`,
-                            }}
-                            className="h-10 w-auto max-w-[9rem] object-contain lg:h-12 lg:max-w-[11rem]"
-                          />
+                        /* NO PLATE. The logos sit straight on the band, because
+                           each file now carries its own transparency — the
+                           outer background was flood-filled away rather than
+                           keyed out by colour, so the white letters INSIDE
+                           Johnstone's badge and Farrow & Ball's wordmark
+                           survived instead of being punched through.
+
+                           Two of them are reversed to the site's ink: Little
+                           Greene and Crown are near-black artwork and would
+                           have disappeared on a near-black band. That is the
+                           job a brand's own "white version" does; these did not
+                           come with one, so it is derived from the shape and
+                           nothing else — no redrawing, no recolouring to a
+                           different hue. Dulux keeps its navy tile and
+                           Johnstone's its blue badge, because those ARE the
+                           marks and both read fine here. */
+                        <span className="grid place-items-center">
+                          {/* ONE BOX, EVERY LOGO. These six range from a 1:1
+                              navy tile to a 9:1 wordmark, and sizing them by
+                              height alone would render Dulux a fraction of the
+                              width of Farrow & Ball. A fixed box with
+                              object-contain lets each mark fill whichever
+                              dimension binds first, which is how a logo strip
+                              stays even without anybody being cropped or
+                              stretched. */}
+                          <span className="relative block h-11 w-[7.5rem] lg:h-14 lg:w-[9.5rem]">
+                            <Image
+                              src={brand.logo.src}
+                              /* The brand name, not "logo" — a screen reader
+                                 saying "Dulux" is the information; "Dulux logo"
+                                 is furniture. */
+                              alt={brand.name}
+                              fill
+                              /* EAGER, because a marquee defeats lazy loading.
+                                 Most copies start outside the viewport and the
+                                 track carries them in by transform, which is
+                                 not reliably treated as becoming visible — at
+                                 375px, 18 of the 36 images never loaded at all,
+                                 so the band would have scrolled a run of empty
+                                 gaps in. There are only six unique files and
+                                 the rest are cache hits, so eager costs six
+                                 small requests once. */
+                              loading="eager"
+                              unoptimized={brand.logo.unoptimized}
+                              /* The rendered box never exceeds ~152px, and the
+                                 sources are small already — telling the
+                                 optimiser the real display width stops it
+                                 generating and shipping 640px variants of a
+                                 75px logo. */
+                              sizes="(min-width: 1024px) 152px, 120px"
+                              className="object-contain object-center"
+                            />
+                          </span>
                         </span>
                       ) : (
                         <span className="font-display text-[1.125rem] leading-tight font-semibold tracking-[-0.02em] whitespace-nowrap text-ink lg:text-[1.375rem]">

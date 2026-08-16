@@ -15,11 +15,13 @@ export type Brand = {
 /**
  * The paint brands the business actually works with.
  *
- * THE ORDER IS THE DISPLAY ORDER, and Dulux sits in the middle of five because
- * it is the one most customers recognise — the client asked for it there
- * specifically, and the centre of an odd-numbered row is the position the eye
- * lands on first. Adding a sixth brand breaks that centring: keep the list odd,
- * or move Dulux to whatever the new middle is.
+ * THE ORDER IS THE DISPLAY ORDER, and Dulux is third because the client asked
+ * for it in the middle — it being the name most customers recognise. That was
+ * a request about a static row of five, where the centre is the position the
+ * eye lands on first. This is a scrolling banner now and Valspar has made it
+ * six, so there is no fixed middle any more: every logo passes the centre of
+ * the screen on every loop. Dulux stays third because the sequence is still
+ * worth choosing, not because that position now does the work it used to.
  *
  * THESE ARE OTHER COMPANIES' TRADEMARKS. They are shown to say which materials
  * this decorator buys and uses — ordinary, honest nominative use — and nothing
@@ -28,18 +30,21 @@ export type Brand = {
  * ever asks for their mark to be removed, delete the entry: the strip renders
  * whatever is in this array and needs no other change.
  *
- * THE ARTWORK IS NOT IN THE REPOSITORY. It could not be fetched where this was
- * built — the network policy refuses all five manufacturers' sites outright —
- * so until somebody drops the files in, each brand is shown as its NAME set in
- * the site's own face. That is deliberate: a name is true, whereas a redrawn
- * copy of somebody's mark is wrong in a way that gets worse the closer it
- * looks. public/brands/README.md is the instruction for finishing it.
+ * THE ARTWORK CAME FROM THE CLIENT, not from the manufacturers' sites — those
+ * are refused by the network policy where this is built. Each file was trimmed
+ * of white or transparent margin only: a coloured corner means the background
+ * IS part of the mark (Farrow & Ball's slate plate, Dulux's navy tile) and
+ * cropping it would strip half the logo. Nothing was recoloured or redrawn.
+ *
+ * A brand with no file in public/brands falls back to its name in type, so the
+ * banner never shows a hole. See public/brands/README.md.
  */
 export const brands: Brand[] = [
   { name: "Little Greene", slug: "little-greene", site: "https://www.littlegreene.com" },
   { name: "Farrow & Ball", slug: "farrow-and-ball", site: "https://www.farrow-ball.com" },
-  /* The middle of the five — see the note above. */
+  /* Third, by request — see the note on ordering above. */
   { name: "Dulux", slug: "dulux", site: "https://www.dulux.co.uk" },
   { name: "Crown", slug: "crown", site: "https://www.crownpaints.com" },
   { name: "Johnstone's", slug: "johnstones", site: "https://www.johnstonespaint.com" },
+  { name: "Valspar", slug: "valspar", site: "https://www.valsparpaint.co.uk" },
 ];
