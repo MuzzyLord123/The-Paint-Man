@@ -10,7 +10,7 @@ export function PaintTick() {
       <path
         pathLength={1}
         d="M19 33.5 28 42l17-19"
-        stroke="#fff"
+        stroke="var(--color-on-accent)"
         strokeWidth="4.5"
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -1,4 +1,5 @@
 import { site, socialLinks } from "@/config/site";
+import { services } from "@/data/services";
 
 /**
  * LocalBusiness structured data. For a decorator this is the single highest
@@ -55,7 +56,17 @@ export function StructuredData() {
     "@type": "HousePainter",
     "@id": `${site.url}#business`,
     name: site.name,
-    description: `Painter and decorator covering ${site.serviceArea}. Interior and exterior decorating, wallpapering, spray finishing and commercial work.`,
+    /* The trade list is DERIVED from src/data/services.ts, not written here.
+       A hand-written copy claimed wallpapering and spray finishing long after
+       that file dropped both — the same drift nav.ts records catching in the
+       footer. What the business tells Google it does and what its services
+       page says it does are now the same list by construction. */
+    description: `Painter and decorator covering ${site.serviceArea}. ${services
+      .map((service) => service.title)
+      /* Semicolons, because the titles themselves carry commas —
+         "Halls, stairs & landings" joined with ", " reads as six mystery
+         trades. */
+      .join("; ")}.`,
     url: site.url,
     telephone: site.phone,
     email: site.email,
@@ -71,13 +82,8 @@ export function StructuredData() {
     /* Only real profiles. A sameAs pointing at "{{FACEBOOK_URL}}" is an
        invalid URL in the knowledge graph and does the business no favours. */
     sameAs: socialLinks.map((link) => link.href),
-    knowsAbout: [
-      "Interior decorating",
-      "Exterior painting",
-      "Wallpapering",
-      "Spray finishing",
-      "Commercial decorating",
-    ],
+    // Derived for the same reason as the description above.
+    knowsAbout: services.map((service) => service.title),
   };
 
   return (

@@ -182,7 +182,15 @@ export function Testimonials() {
   const count = testimonials.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false); // the explicit control
-  const [held, setHeld] = useState(false); // hover, focus, off-screen, hidden tab
+  /* TWO states, not one. These used to be a single `held` boolean written by
+     four sources — hover, focus, the IntersectionObserver and visibilitychange —
+     and the last writer won: returning to the tab while focus sat on the Pause
+     button ran the visibility handler, which knew nothing about focus, set the
+     boolean false, and the rail advanced under the reader — the exact thing the
+     spec above promises cannot happen. The conditions are independent, so they
+     get independent state and are OR-ed where `running` is derived. */
+  const [engaged, setEngaged] = useState(false); // pointer over it, or focus within it
+  const [away, setAway] = useState(false); // scrolled off-screen, or the tab is hidden
   const [reduced, setReduced] = useState(false);
   const region = useRef<HTMLDivElement>(null);
 
@@ -205,7 +213,7 @@ export function Testimonials() {
     const node = region.current;
     if (!node) return;
     let onScreen = true;
-    const update = () => setHeld(!onScreen || document.hidden);
+    const update = () => setAway(!onScreen || document.hidden);
     const observer = new IntersectionObserver(
       ([entry]) => {
         onScreen = entry.isIntersecting;
@@ -221,7 +229,7 @@ export function Testimonials() {
     };
   }, []);
 
-  const running = !paused && !held && !reduced && count > 1;
+  const running = !paused && !engaged && !away && !reduced && count > 1;
 
   useEffect(() => {
     if (!running) return;
@@ -269,11 +277,11 @@ export function Testimonials() {
           role="group"
           aria-roledescription="carousel"
           aria-label="Customer reviews"
-          onMouseEnter={() => setHeld(true)}
-          onMouseLeave={() => setHeld(false)}
-          onFocusCapture={() => setHeld(true)}
+          onMouseEnter={() => setEngaged(true)}
+          onMouseLeave={() => setEngaged(false)}
+          onFocusCapture={() => setEngaged(true)}
           onBlurCapture={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget as Node)) setHeld(false);
+            if (!event.currentTarget.contains(event.relatedTarget as Node)) setEngaged(false);
           }}
           className="mt-7 lg:mt-9"
         >
@@ -354,8 +362,10 @@ export function Testimonials() {
         {/* Read by nobody who can see the section, and the only way someone on a
             screen reader knows where they are in it — the counter beside the
             bar is the visual equivalent, and is aria-hidden so this is not
-            announced twice. */}
-        <p className="sr-only" aria-live="polite">
+            announced twice. Off while rotating, like the slides region above:
+            hard-coded polite here meant an announcement every eight seconds
+            forever, which is the exact failure the note at the top forbids. */}
+        <p className="sr-only" aria-live={running ? "off" : "polite"}>
           Review {index + 1} of {count}: {current.name}, {current.date}.
         </p>
       </div>

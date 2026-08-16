@@ -146,7 +146,10 @@ export function ChipGroup({
           return (
             <label
               key={option}
-              className={`inline-flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2.5 text-[0.9375rem] transition-[border-color,background-color,color,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] has-focus-visible:ring-2 has-focus-visible:ring-accent/30 ${
+              /* Full-strength ring: the radio is sr-only, so this is the pill's
+                 only focus indicator. At /30 it measured ~1.7:1 against the
+                 paper it sits on — decoration, not an indicator. */
+              className={`inline-flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2.5 text-[0.9375rem] transition-[border-color,background-color,color,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] has-focus-visible:ring-2 has-focus-visible:ring-accent ${
                 active
                   ? "border-accent bg-accent-wash text-accent-ink"
                   : "border-hairline bg-paper text-ink-soft hover:border-accent/45 hover:text-ink"
@@ -194,11 +197,16 @@ export function Honeypot({
 }) {
   return (
     /* No <label>, and the input is not called anything a password manager
-       recognises. A hidden field labelled "Website" is exactly what autofill
-       looks for, and every customer it filled in was silently binned. */
+       recognises — which is a claim about the DOM, not the intention. The
+       rendered name attribute comes from the register() spread below, so the
+       callers' field name IS the honeypot's name: it was register("website")
+       for a while, which put name="website" back in the markup and silently
+       binned every customer whose password manager filled its Website slot.
+       The field is "extraRef" everywhere now (see lead-schema.ts); if that
+       ever changes, check the new name against autofill heuristics first. */
     <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
       <input
-        id="contact-ref"
+        id="extra-ref"
         type="text"
         tabIndex={-1}
         autoComplete="off"

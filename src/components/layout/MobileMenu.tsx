@@ -45,10 +45,17 @@ export function MobileMenu() {
   const pathname = usePathname();
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => setOpen(false), []);
 
-  // Route change closes the menu.
+  /* Route change closes the menu — but it is a BACKSTOP, not the mechanism.
+     usePathname only changes when the PATH changes, so a link to /work#slug
+     tapped while already on /work never re-runs this effect: the URL updated,
+     the menu stayed open, and the page stayed scroll-locked under it — a tap
+     that visibly did nothing. Every internal link in the panel therefore closes
+     the menu itself via onClick={close}; this effect remains for navigations
+     that do not start in the panel (browser back, a redirect). */
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
@@ -81,7 +88,21 @@ export function MobileMenu() {
           'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
         ),
       ];
-      const focusable = toggleRef.current ? [toggleRef.current, ...inPanel] : inPanel;
+      /* The whole bar, not just the toggle. The Wordmark home link stays
+         visible and clickable over the open panel, so leaving it out of the
+         cycle made it the one control a pointer could reach and a keyboard
+         could not. Querying the bar picks up Wordmark then toggle, in the
+         order they appear on screen. */
+      const inBar = barRef.current
+        ? [
+            ...barRef.current.querySelectorAll<HTMLElement>(
+              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            ),
+          ]
+        : toggleRef.current
+          ? [toggleRef.current]
+          : [];
+      const focusable = [...inBar, ...inPanel];
       if (focusable.length === 0) return;
 
       const first = focusable[0];
@@ -113,13 +134,20 @@ export function MobileMenu() {
           same stacking context, so it inverts to white rather than being
           duplicated underneath. */}
       <div
+        ref={barRef}
         data-menu-open={open}
         className="mobile-bar shell relative z-[96] flex h-[5.25rem] items-center justify-between"
       >
         {/* The full-colour mark, open or closed. It used to swap to a near-black
             knockout while the menu was open, which only existed because the
-            panel was orange and the real mark would have been orange on orange. */}
-        <Wordmark />
+            panel was orange and the real mark would have been orange on orange.
+            The wrapper closes the menu on tap: while the menu is open the mark
+            still navigates home, and going home from / is a same-pathname
+            navigation the route-change effect never sees. display: contents, so
+            the flex row is laid out exactly as if the span were not there. */}
+        <span className="contents" onClickCapture={close}>
+          <Wordmark />
+        </span>
         <BrushToggle ref={toggleRef} open={open} onClick={() => setOpen((v) => !v)} />
       </div>
 
@@ -238,6 +266,7 @@ export function MobileMenu() {
                       <Link
                         href={link.href}
                         aria-current={current ? "page" : undefined}
+                        onClick={close}
                         style={{ transitionDelay: `${0.12 + index * 0.04}s` }}
                         /* Steps down on short handsets so the whole menu still
                            lands inside one screen where it can. */
@@ -290,6 +319,7 @@ export function MobileMenu() {
                 </p>
                 <Link
                   href="/work"
+                  onClick={close}
                   className="inline-flex items-center gap-1 eyebrow text-ink-soft"
                 >
                   All work
@@ -305,7 +335,7 @@ export function MobileMenu() {
                 className="mt-3 flex snap-x gap-3 overflow-x-auto overscroll-x-contain pb-1">
                 {featuredProjects.slice(0, 5).map((project) => (
                   <li key={project.slug} className="w-[42vw] max-w-[11rem] shrink-0 snap-start">
-                    <Link href={`/work#${project.slug}`} className="block">
+                    <Link href={`/work#${project.slug}`} onClick={close} className="block">
                       <div className="relative aspect-[4/3] overflow-hidden rounded-[4px] bg-plaster">
                         <Image
                           src={project.images[0].src}
@@ -341,6 +371,7 @@ export function MobileMenu() {
 
               <Link
                 href={CTA_HREF}
+                onClick={close}
                 /* text-on-accent, NEVER text-ink. This is an orange pill, and
                    near-white on #f26522 is 2.9:1 — the single pairing the
                    colour system exists to forbid. It got here by a careless

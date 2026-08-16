@@ -45,7 +45,7 @@ export const policySections: PolicySection[] = [
          urgency is a fair picture of someone's house and their finances, and it
          is exactly what a notice exists to declare. If a field is ever added to
          that schema, add it here in the same commit. */
-      "If you fill in the quote form we collect your name, phone number, email address, the town the job is in, which trade you picked, what sort of property it is, roughly how many rooms need doing, how soon you want it done, and whatever you write in the message box. If you ask for a site visit we also take the address we are coming to, the day you would like, and whether morning or afternoon suits you. We do not ask for anything else.",
+      "If you fill in the quote form we collect your name, phone number, email address, the town the job is in, which trade you picked, what sort of property it is, roughly how many rooms need doing, how soon you want it done, whether you have photographs of the job to send us, and whatever you write in the message box. If you ask for a site visit we also take the address we are coming to, the day you would like, and whether morning or afternoon suits you. We do not ask for anything else.",
       "We do not run analytics on this site. There is no tracking pixel, no advertising tag, and no cookie set by us.",
       "Two small things are saved in your browser's own storage, and neither is a cookie — they are never sent to us and nobody else can read them. One remembers that you have seen the opening animation, so it does not play again in the same visit. The other remembers that you have closed the privacy notice, so it does not ask you twice. You can clear both by clearing this site's data in your browser.",
     ],

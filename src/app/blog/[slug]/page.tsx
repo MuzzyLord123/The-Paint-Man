@@ -35,8 +35,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       title: post.title,
       description: post.description,
       publishedTime: post.date,
-      // Dimensions let a preview reserve the right box instead of reflowing.
-      images: [{ url: post.image, width: 1600, height: 1200, alt: post.title }],
+      /* Dimensions let a preview reserve the right box instead of reflowing —
+         which only works if they are the file's own. Stated per post in the
+         MDX meta, because the posts borrow gallery photographs and two of the
+         three are portrait; the hard-coded 1600x1200 this replaces declared
+         them transposed. */
+      images: [
+        { url: post.image, width: post.imageWidth, height: post.imageHeight, alt: post.title },
+      ],
     },
   };
 }

@@ -94,11 +94,21 @@ export const quoteSchema = z.object({
      NO max(0) HERE, and that is the whole point. It used to reject a filled
      honeypot at the schema, which meant two things: the honeypot branch in
      looksAutomated() was unreachable dead code, and a real customer whose
-     password manager or browser autofilled the hidden "website" field was told
+     password manager or browser autofilled the hidden field was told
      "Some details are missing" on a form with no visible error — an invisible
      field they cannot find, and a lost job. The action decides now, and it
-     answers a bot with a success shape so it learns nothing. */
-  website: z.string().optional(),
+     answers a bot with a success shape so it learns nothing.
+
+     CALLED extraRef, NOT website, and the name is load-bearing. The rendered
+     input's name attribute comes from register("extraRef"), and the name is
+     the primary signal autofill engines match on: as name="website" the field
+     was exactly what a password manager's "Website" slot looks for, so real
+     customers' browsers filled it invisibly and looksAutomated() binned their
+     enquiry behind a fake success screen — the failure mode the paragraph
+     above exists to prevent, reintroduced through the DOM. "extraRef" matches
+     no autofill vocabulary. If it is ever renamed, check the new name against
+     browser autofill heuristics first. */
+  extraRef: z.string().optional(),
   elapsedMs: z.number(),
 });
 
@@ -123,7 +133,9 @@ export const bookingSchema = z.object({
   address: text(200).pipe(z.string().min(4, "The address we are coming to")),
   message: text(2000).optional(),
 
-  website: z.string().optional(),
+  /* Same honeypot as the quote schema — and the same rule: never name it
+     anything autofill recognises. See the note there. */
+  extraRef: z.string().optional(),
   elapsedMs: z.number(),
 });
 

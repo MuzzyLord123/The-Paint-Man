@@ -13,6 +13,23 @@ const PAPER = "#fafaf8";
 const PLASTER = "#edede9";
 const ACCENT = "#b8430b"; // working orange: 5.4:1 with white, unlike the logo orange
 
+/* The masthead wordmark, DERIVED from site.name rather than typed here. It was
+   a hard-coded "The Paint Man" — the wrong business name — in the header of
+   every quote and booking email, contradicting the same email's own footer,
+   which already printed site.name correctly. The exact drift the share card
+   had (see opengraph-image.tsx): a second hand-written copy of the name is a
+   second thing to fall out of date. First word muted, last word underlined,
+   whatever the words are. */
+function masthead(): string {
+  const words = site.name.split(" ").map(escapeHtml);
+  const first = words[0] ?? "";
+  const last = words.length > 1 ? words[words.length - 1] : "";
+  const middle = words.slice(1, -1).join(" ");
+  return `<span style="color:${MUTE};">${first}</span>${middle ? ` ${middle}` : ""}${
+    last ? ` <span style="border-bottom:3px solid ${ACCENT};padding-bottom:2px;">${last}</span>` : ""
+  }`;
+}
+
 function shell(title: string, body: string): string {
   return `<!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
@@ -23,7 +40,7 @@ function shell(title: string, body: string): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${PAPER};border-radius:4px;">
 <tr><td style="padding:28px 32px 0;">
   <p style="margin:0;font:600 15px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:${INK};">
-    <span style="color:${MUTE};">The</span> Paint <span style="border-bottom:3px solid ${ACCENT};padding-bottom:2px;">Man</span>
+    ${masthead()}
   </p>
 </td></tr>
 <tr><td style="padding:24px 32px 32px;font:400 15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${SOFT};">

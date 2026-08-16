@@ -47,8 +47,8 @@ function dateLabel(iso: string): string {
  * minimum time on the form that no bot waits out. Both fail closed but return
  * a success shape, so a bot learns nothing from the response.
  */
-function looksAutomated(input: { website?: string; elapsedMs: number }): boolean {
-  if (input.website && input.website.length > 0) return true;
+function looksAutomated(input: { extraRef?: string; elapsedMs: number }): boolean {
+  if (input.extraRef && input.extraRef.length > 0) return true;
   // Elapsed time measured on the client, never a cross-clock subtraction.
   return input.elapsedMs < MIN_SUBMIT_MS;
 }

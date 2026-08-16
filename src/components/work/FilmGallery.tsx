@@ -30,7 +30,18 @@ function FilmPoster({
   sizes: string;
   className?: string;
 }) {
-  const [src, setSrc] = useState(film.poster);
+  /* The src is DERIVED from the film prop on every render; state only records
+     WHICH film's poster failed. It used to be useState(film.poster) with the
+     src itself as state — but a useState initialiser runs once per component
+     instance, and the desktop stage renders one FilmPoster at a stable tree
+     position while `film` changes underneath it on every queue selection. The
+     instance survived, its cached src did not follow, and the stage kept
+     showing the previous film's poster under the new film's title. Keying the
+     fallback on film.id also resets it correctly when the next film's poster
+     is fine. */
+  const [failedFor, setFailedFor] = useState<string | null>(null);
+  const src =
+    failedFor === film.id && film.posterFromYouTube ? youTubePoster(film.id, "hq") : film.poster;
 
   return (
     <Image
@@ -40,9 +51,7 @@ function FilmPoster({
       sizes={sizes}
       placeholder="blur"
       blurDataURL={blurTone(film.tone)}
-      onError={() => {
-        if (film.posterFromYouTube) setSrc(youTubePoster(film.id, "hq"));
-      }}
+      onError={() => setFailedFor(film.id)}
       className={className}
     />
   );

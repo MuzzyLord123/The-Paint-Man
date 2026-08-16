@@ -70,6 +70,19 @@ export function PrivacyNotice() {
     if (state !== "shown") return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      /* An Escape aimed at an open overlay is not an answer to this notice.
+         The lightbox, the mobile menu, both bottom sheets and the services
+         mega-menu all close on a document-level Escape of their own, and this
+         handler used to fire alongside theirs — one keypress closed the
+         lightbox AND recorded tpm-privacy-ack, permanently, for a notice the
+         visitor never read. Checked against the DOM rather than
+         event.defaultPrevented because sibling document listeners run in
+         registration order, which nothing here controls. Every modal marks
+         itself aria-modal="true" only while open (this notice is
+         aria-modal="false"), and the mega-menu carries data-open. */
+      if (document.querySelector('[aria-modal="true"], #services-mega[data-open="true"]')) {
+        return;
+      }
       /* Escape closes the policy first and the notice second. Collapsing what
          you just opened is the expected step back; dismissing the whole thing
          from under someone mid-read is not. */

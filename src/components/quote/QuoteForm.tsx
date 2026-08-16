@@ -67,7 +67,7 @@ export function QuoteForm() {
   } = useForm<QuoteInput>({
     resolver: zodResolver(quoteSchema),
     mode: "onTouched",
-    defaultValues: { website: "", elapsedMs: 0, hasPhotos: false },
+    defaultValues: { extraRef: "", elapsedMs: 0, hasPhotos: false },
   });
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export function QuoteForm() {
   return (
     <MotionProvider>
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="relative">
-      <Honeypot register={register("website")} />
+      <Honeypot register={register("extraRef")} />
 
       <PaintGauge step={step} total={STEP_FIELDS.length} labels={STEP_LABELS} />
 
@@ -155,7 +155,15 @@ export function QuoteForm() {
                     return (
                       <label
                         key={option.id}
-                        className={`group cursor-pointer overflow-hidden rounded-[4px] border bg-paper transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:rotate-1 hover:shadow-lift active:scale-[0.98] active:rotate-0 has-focus-visible:ring-2 has-focus-visible:ring-accent/35 ${
+                        /* The radio inside is sr-only, so this ring is the ONLY
+                           focus indicator the card has — full-strength accent,
+                           and box-shadow is deliberately NOT in the transition
+                           list: rings are box-shadows, and transitioning them
+                           meant the indicator faded in over 300ms from
+                           invisible. The hover lift's shadow arrives instantly
+                           too, which nobody notices; a focus ring arriving
+                           late, everybody does. */
+                        className={`group cursor-pointer overflow-hidden rounded-[4px] border bg-paper transition-[transform,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:rotate-1 hover:shadow-lift active:scale-[0.98] active:rotate-0 has-focus-visible:ring-2 has-focus-visible:ring-accent ${
                           active ? "border-accent shadow-lift" : "border-hairline"
                         }`}
                       >
@@ -308,7 +316,7 @@ export function QuoteForm() {
                 )}
               </Field>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-[8px] border border-hairline bg-paper p-4 transition-colors duration-200 hover:border-accent/45 has-focus-visible:ring-2 has-focus-visible:ring-accent/30">
+              <label className="flex cursor-pointer items-start gap-3 rounded-[8px] border border-hairline bg-paper p-4 transition-colors duration-200 hover:border-accent/45 has-focus-visible:ring-2 has-focus-visible:ring-accent">
                 <input
                   type="checkbox"
                   {...register("hasPhotos")}

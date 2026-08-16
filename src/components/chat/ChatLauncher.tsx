@@ -141,15 +141,23 @@ export function ChatLauncher() {
       aria-label={status === "loading" ? "Opening live chat" : "Open live chat"}
       className="fixed right-4 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-[85] grid size-14 place-items-center rounded-full text-on-accent transition-transform duration-[320ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.06] hover:-rotate-6 active:scale-95 lg:right-6 lg:bottom-6 lg:size-16"
     >
-      {/* The blob is the button — paint does not land in perfect rounds */}
-      <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full drop-shadow-[0_10px_26px_rgb(29_79_216/0.45)]" aria-hidden="true">
+      {/* The blob is the button — paint does not land in perfect rounds.
+          The glow is the ACCENT's, rgb(242 101 34) — it was still rgb(29 79 216),
+          Wet Paint Blue from the original light-site brief, the exact defect the
+          token comments record being fixed for every button (see shadow-accent
+          in globals.css). A blue halo under an orange blob on a near-black page. */}
+      <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full drop-shadow-[0_10px_26px_rgb(242_101_34/0.5)]" aria-hidden="true">
         <path
           d="M32 2c9.6 0 18.5 4.4 24 12.6 5.2 7.8 5.9 18.4 1.8 27C53.6 50.2 44.6 56.6 34.6 58c-9.6 1.4-20.2-2-26.4-9.2C2.4 41.9.6 30.6 3.7 21.4 6.8 12.2 15.3 5.4 22.8 3.4A38 38 0 0 1 32 2Z"
           fill="var(--color-accent-bright)"
         />
       </svg>
 
-      {/* A brush leaving a mark, drawn in the icon system's weight */}
+      {/* A brush leaving a mark, drawn in the icon system's weight.
+          currentColor, NEVER #fff: the button already sets text-on-accent, and
+          white on the accent-bright blob is ~2.5:1 — the one pairing the colour
+          system exists to forbid. currentColor also keeps the glyph honest with
+          the contrast audit, which measures on-accent on accent-bright. */}
       <svg
         viewBox="0 0 24 24"
         className="relative size-6 lg:size-7"
@@ -158,11 +166,16 @@ export function ChatLauncher() {
       >
         <path
           d="M4.5 6.5A2.5 2.5 0 0 1 7 4h10a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 16H10l-4.2 3.2a.6.6 0 0 1-1-.5V16a2.5 2.5 0 0 1-.3-1.2v-8.3Z"
-          stroke="#fff"
+          stroke="currentColor"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />
-        <path d="M8.5 8.75h7M8.5 11.75h4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+        <path
+          d="M8.5 8.75h7M8.5 11.75h4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
 
       {status === "loading" && (

@@ -11,7 +11,10 @@ import { CTA_HREF, CTA_LABEL, site } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Services",
-  description: `Interior decorating, exterior painting, wallpapering, spray finishing and commercial work across ${site.serviceArea}. What each job involves, and what it costs.`,
+  /* The trades named here are the six the page actually lists (see
+     src/data/services.ts) — an earlier version still advertised wallpapering
+     and spray finishing, which that file records as deliberately dropped. */
+  description: `Interior decorating, halls and stairs, kitchens and bathrooms, extensions, exterior painting and commercial work across ${site.serviceArea}. What each job involves, and what it costs.`,
   alternates: { canonical: "/services" },
 };
 

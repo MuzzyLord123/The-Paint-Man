@@ -289,17 +289,12 @@
 
 /* A reveal starts at opacity 0 and is brought in by an IntersectionObserver, so
    without JavaScript the observer never runs and the content stays invisible
-   forever — measured at 30 blocks on the home page alone.
-
-   Nobody browses with JavaScript off on purpose here, but a bundle that fails
-   to load is an ordinary network event, and the failure mode is a page that
-   renders its header and almost nothing else. The <noscript> block in the
-   document head turns this rule on, which costs nothing when scripts do run. */
-.no-js .reveal {
-  opacity: 1;
-  transform: none;
-  transition: none;
-}
+   forever — measured at 30 blocks on the home page alone. The fallback lives in
+   layout.tsx as a <noscript><style> targeting .reveal directly — that is the
+   ONLY mechanism. A `.no-js .reveal` rule used to sit here as well, claiming
+   the noscript block "turns it on", but nothing anywhere set a no-js class:
+   the rule could never match, and its comment described plumbing that did not
+   exist. One mechanism, in the file that owns the <head>. */
 
 /* --------------------------------------------------------------------------
    Roller stipple — the single page texture.
@@ -374,24 +369,11 @@
   }
 }
 
-/* 3 — Nav brush underline. pathLength="1" lets one dash unit cover the path. */
-.brush-underline path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  opacity: 0;
-  transition:
-    stroke-dashoffset 0.42s var(--ease-coat),
-    opacity 0.08s linear;
-}
-.brush-underline path:nth-child(2) {
-  transition-delay: 0.05s;
-}
-.nav-link:hover .brush-underline path,
-.nav-link:focus-visible .brush-underline path,
-.nav-link[data-active="true"] .brush-underline path {
-  stroke-dashoffset: 0;
-  opacity: 1;
-}
+/* 3 — Nav brush underline: REMOVED, deliberately. The hand-drawn stroke that
+   used to draw itself under nav links read as decoration on a bar that needed
+   structure (see the notes in DesktopNav.tsx) — active is carried by colour
+   and weight instead. Its BrushStroke component and this file's .brush-underline
+   rules were dead code for a while after that decision and are gone. */
 
 /* 4 — The drip. Runs once as the heading arrives, then it is finished. */
 .drip {

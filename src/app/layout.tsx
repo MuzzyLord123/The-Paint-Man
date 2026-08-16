@@ -5,7 +5,6 @@ import { previewMode } from "@/config/preview";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { MobileActionBar } from "@/components/layout/MobileActionBar";
-import { ScrollPaintLevel } from "@/components/layout/ScrollPaintLevel";
 import { ChatLauncher } from "@/components/chat/ChatLauncher";
 import { PrivacyNotice } from "@/components/legal/PrivacyNotice";
 import { StructuredData } from "@/components/seo/StructuredData";
@@ -74,7 +73,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <ScrollPaintLevel />
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />

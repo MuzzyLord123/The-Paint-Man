@@ -207,7 +207,7 @@ export const projects: Project[] = [
     category: "interior",
     scope: "The hardest room in the house to decorate, done seven times over.",
     detail:
-      "Hall, stairs and landing is the job most decorators quote high for, because of the access. Ceilings over a stairwell need a proper platform rather than a ladder propped on a tread, and every wall is a cutting-in job around spindles, strings and coving. These three were all done with the families still living in them.",
+      "Hall, stairs and landing is the job most decorators quote high for, because of the access. Ceilings over a stairwell need a proper platform rather than a ladder propped on a tread, and every wall is a cutting-in job around spindles, strings and coving. Every one of them was done with the family still living in the house.",
     duration: "4 days each",
     images: [
       img("/work/halls-01.jpg", "Hallway in warm grey with an oak floor and a run of framed photographs", "3:4", "#938472", "Hall and landing in a warm grey with the woodwork in satin, oak floor covered throughout."),

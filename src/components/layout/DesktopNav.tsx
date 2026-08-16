@@ -28,13 +28,19 @@ import { blurTone } from "@/lib/images";
  *   3. A mega-menu under Services, carrying the six trades and a real
  *      photograph of recent work rather than a list of links.
  *
- * The panel opens on hover and on focus, closes on Escape, on click outside and
- * on leaving the whole header — so it is usable by pointer, keyboard and
- * screen reader alike. The trigger is a real button with aria-expanded.
+ * The panel opens on hover and from the disclosure button (Enter or Space —
+ * deliberately NOT on focus, see the note on the button); it closes on Escape,
+ * on click outside, and when the pointer or keyboard focus leaves the whole
+ * header. Closing is header-scoped in BOTH input models on purpose: the panel
+ * sits after the nav in the DOM, so the tab path from the button to the panel
+ * runs through the remaining nav links — a close scheduled from focusing any
+ * of those (as an early version did) shut the panel before a keyboard user
+ * could ever reach inside it. The trigger is a real button with aria-expanded.
  */
 export function DesktopNav() {
   const pathname = usePathname();
   const headerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef(0);
   const [open, setOpen] = useState(false);
 
@@ -50,7 +56,17 @@ export function DesktopNav() {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setOpen(false);
+      /* Focus goes back to the disclosure that opened the panel — otherwise a
+         keyboard user who pressed Escape from inside the panel is dropped on
+         <body> and has to tab in from the top of the page again. Only when
+         focus was actually inside the header: Escape pressed elsewhere on the
+         page should not teleport focus into the nav. */
+      if (headerRef.current?.contains(document.activeElement)) {
+        triggerRef.current?.focus();
+      }
     };
     const onPointerDown = (event: PointerEvent) => {
       if (!headerRef.current?.contains(event.target as Node)) setOpen(false);
@@ -75,7 +91,22 @@ export function DesktopNav() {
   const lead = featuredProjects[0];
 
   return (
-    <div ref={headerRef} className="relative hidden lg:block" onMouseLeave={scheduleClose}>
+    <div
+      ref={headerRef}
+      className="relative hidden lg:block"
+      onMouseLeave={scheduleClose}
+      /* The keyboard mirror of onMouseLeave: schedule the close only when focus
+         actually LEAVES the header (relatedTarget outside it), and cancel any
+         pending close the moment focus lands anywhere inside — including the
+         panel itself. Per-link onFocus={scheduleClose} was tried and is the
+         wrong shape: About and Blog sit between the trigger and the panel in
+         tab order, so focusing them closed the panel 140ms later, before Tab
+         could reach a single link inside it. */
+      onFocusCapture={cancelClose}
+      onBlurCapture={(event) => {
+        if (!headerRef.current?.contains(event.relatedTarget as Node)) scheduleClose();
+      }}
+    >
 
       {/* 1 — utility strip. In preview mode it carries the explanation for the
              greyed items instead, which is the one place on a desktop layout
@@ -195,6 +226,7 @@ export function DesktopNav() {
                           {link.label}
                         </Link>
                         <button
+                          ref={triggerRef}
                           type="button"
                           aria-expanded={open}
                           aria-controls="services-mega"
@@ -219,7 +251,12 @@ export function DesktopNav() {
                         <Link
                           href={link.href}
                           aria-current={active ? "page" : undefined}
-                          onFocus={scheduleClose}
+                          /* No onFocus={scheduleClose} here — focusing a nav
+                             link is not leaving the header. The tab path to the
+                             open panel runs through these links, so a close
+                             scheduled from them made the panel unreachable by
+                             keyboard. The header's own focusout handles the
+                             real exit. */
                           /* Active is carried by COLOUR AND WEIGHT, not a rule beneath.
                              The painted underline that used to live here read as
                              decoration on a bar that needed structure. */

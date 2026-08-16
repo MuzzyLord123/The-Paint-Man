@@ -13,6 +13,13 @@ export type PostMeta = {
   /** Reading time in minutes, set per post when it is written. */
   minutes: number;
   image: string;
+  /* The image file's REAL pixel dimensions, stated per post because the posts
+     borrow gallery photographs and those come in both orientations. They feed
+     og:image:width/height; a hard-coded 1600x1200 in the page metadata
+     declared two portrait images as landscape, which makes a link preview
+     reserve the wrong box — the opposite of what dimensions are for. */
+  imageWidth: number;
+  imageHeight: number;
   tone: string;
 };
 

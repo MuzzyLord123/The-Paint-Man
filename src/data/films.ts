@@ -1,4 +1,5 @@
 import { representativeImage, type CategoryId } from "./projects";
+import { site } from "@/config/site";
 import { youTubeId, youTubePoster } from "@/lib/youtube";
 
 /**
@@ -101,8 +102,13 @@ const input: FilmInput[] = [];
 
 /* -------------------------------------------------------------------------- */
 
-/** Fallback area, matching the areas the gallery projects carry. */
-const DEFAULT_AREA = "the Wirral";
+/* Fallback area, FROM THE CONFIG — the same source the gallery projects use
+   for theirs. This was a hard-coded "the Wirral", which happened to equal
+   site.town's default while contradicting both this file's own field doc
+   ("defaults to the service area from the site config") and the way every
+   project sets its area; anyone changing NEXT_PUBLIC_TOWN would have moved
+   the whole site except the films. */
+const DEFAULT_AREA = site.town;
 
 /** A neutral dark tone, only reachable when a YouTube frame is asked for. */
 const YOUTUBE_TONE = "#1e1e23";

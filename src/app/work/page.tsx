@@ -13,7 +13,11 @@ import { site } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Our work",
-  description: `Recent decorating jobs across ${site.serviceArea} — interiors, exteriors, wallpapering, spray finishing and commercial work, with before and after comparisons.`,
+  /* The list matches what the gallery actually contains (see CATEGORIES in
+     src/data/projects.ts) — an earlier version advertised wallpapering and
+     spray finishing here, two trades the services data records as deliberately
+     dropped and no photograph shows. */
+  description: `Recent decorating jobs across ${site.serviceArea} — interiors, exteriors, woodwork, feature walls and commercial work, with before and after comparisons.`,
   alternates: { canonical: "/work" },
 };
 

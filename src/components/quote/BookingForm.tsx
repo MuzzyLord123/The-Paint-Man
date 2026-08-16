@@ -65,7 +65,7 @@ export function BookingForm() {
   } = useForm<BookingInput>({
     resolver: zodResolver(bookingSchema),
     mode: "onTouched",
-    defaultValues: { website: "", elapsedMs: 0, date: "" },
+    defaultValues: { extraRef: "", elapsedMs: 0, date: "" },
   });
 
   // Dates are resolved after mount so the server and client never disagree.
@@ -127,7 +127,7 @@ export function BookingForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="relative grid gap-8">
-      <Honeypot register={register("website")} />
+      <Honeypot register={register("extraRef")} />
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,20rem)_1fr] lg:gap-10">
         <div>
