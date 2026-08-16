@@ -9,7 +9,13 @@ import { CTA_HREF, CTA_LABEL, site } from "@/config/site";
 
 export function Hero() {
   return (
-    <section className="relative pt-[6.5rem] pb-16 lg:pt-[9rem] lg:pb-24">
+    /* NO BOTTOM PADDING. The last thing in the hero is the full-bleed stats
+       band, which is bordered top and bottom and carries its own ground — so
+       padding underneath it was not breathing room, it was a 96px strip of bare
+       page between two bands, reading as a hole in the layout rather than as
+       space. The band's own bottom border is where the hero ends; whatever
+       follows brings its own top padding. */
+    <section className="relative pt-[6.5rem] lg:pt-[9rem]">
       <div className="shell">
         <div className="grid items-end gap-y-10 lg:grid-cols-[1.06fr_0.94fr] lg:gap-x-12">
           {/* Type column */}

@@ -26,13 +26,16 @@ import { brands } from "@/data/brands";
  * about materials rather than a set of references. The brand's own address is
  * kept in src/data/brands.ts for whoever needs it.
  *
- * WHILE THE ARTWORK IS MISSING, each brand is set as a WORDMARK in the site's
- * display face rather than shown as a gap or a redrawn approximation. That is a
- * deliberate state, not a broken one: it reads as a considered list of names
- * and it degrades in the right direction — a name is true, a hand-copied logo
- * is a worse lie the closer it gets. Dropping a file into public/brands and
- * filling in `logo` in the data file swaps it for the real mark, one brand at a
- * time, with no change here.
+ * WHILE THE ARTWORK IS MISSING, the strip sets the names as one ruled row on
+ * the page's own ground — NOT as empty plates. An empty light plate is a hole
+ * that announces a missing image; the same names set as type read as a
+ * deliberate list. So the plate only exists to host a logo, and appears with
+ * one. A name is also the honest fallback: it is true, where a redrawn
+ * approximation of somebody's mark gets worse the closer it looks.
+ *
+ * Dropping a file into public/brands and filling in `logo` in the data file
+ * swaps that brand to its real mark on a plate, one at a time, with no change
+ * here — so the two states can coexist while the artwork comes in.
  */
 export function PaintBrands() {
   if (brands.length === 0) return null;
@@ -54,27 +57,22 @@ export function PaintBrands() {
         </Reveal>
 
         <Reveal>
-          {/* Five across on a desktop, so the middle brand is genuinely in the
-              middle; two across on a phone, where five would be 60px each.
-              The last plate spans both columns on the narrowest layout rather
-              than sitting alone in a half-width box. */}
-          <ul className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
-            {brands.map((brand, index) => (
-              <li
-                key={brand.name}
-                className={
-                  index === brands.length - 1 && brands.length % 2 === 1
-                    ? "max-sm:col-span-2 sm:max-lg:col-span-3"
-                    : undefined
-                }
-              >
-                {/* bg-ink is the near-WHITE token on this dark site, and the
-                    plate has to be light: Little Greene's and Crown's marks are
-                    near-black artwork and would disappear on the page ground,
-                    while recolouring them to suit it is the one thing a brand
-                    guideline will not allow. */}
-                <div className="grid h-20 place-items-center rounded-[4px] border border-ink/15 bg-ink px-4 lg:h-24">
-                  {brand.logo ? (
+          {/* SPACE IS THE SEPARATOR, not a character. An accent dot between
+              names is the site's own byline device and it read well on one
+              line — but this row wraps on a phone, and any between-items
+              separator then dangles at the start of the new line, which looks
+              like a typo. Generous gaps say the same thing and cannot wrap
+              wrongly. */}
+          <ul className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4 lg:gap-x-12">
+            {brands.map((brand) => (
+              <li key={brand.name} className="flex items-center">
+                {brand.logo ? (
+                  /* The plate exists ONLY to host a mark. These five logos are
+                     drawn for their own grounds — white on slate, near-black on
+                     white, a navy tile, a blue badge — and bg-ink is this dark
+                     site's near-white token, so each one is shown as its owner
+                     drew it rather than recoloured to suit the page. */
+                  <span className="grid h-16 place-items-center rounded-[4px] border border-ink/15 bg-ink px-4 lg:h-20 lg:px-5">
                     <Image
                       src={brand.logo.src}
                       /* The brand name, not "logo" — a screen reader saying
@@ -85,16 +83,14 @@ export function PaintBrands() {
                       /* Contained and capped, so a wide wordmark and a square
                          tile both sit on the same optical line whatever their
                          proportions. */
-                      className="max-h-12 w-auto object-contain lg:max-h-14"
+                      className="max-h-10 w-auto object-contain lg:max-h-12"
                     />
-                  ) : (
-                    /* Near-black on the light plate — about 18:1, and the same
-                       way round the real logos will sit. */
-                    <span className="text-center font-display text-[1.0625rem] leading-tight font-semibold tracking-[-0.02em] text-balance text-paper lg:text-[1.125rem]">
-                      {brand.name}
-                    </span>
-                  )}
-                </div>
+                  </span>
+                ) : (
+                  <span className="font-display text-[1.125rem] leading-tight font-semibold tracking-[-0.02em] whitespace-nowrap text-ink lg:text-[1.375rem]">
+                    {brand.name}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
