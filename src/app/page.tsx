@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
+import { PaintBrands } from "@/components/home/PaintBrands";
 import { ServicesOverview } from "@/components/home/ServicesOverview";
 import { FeaturedWork } from "@/components/home/FeaturedWork";
 import { BeforeAfterMoment } from "@/components/home/BeforeAfterMoment";
@@ -23,6 +24,11 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+
+      {/* Directly under the hero: what goes on the wall, before what we do to
+          it. See PaintBrands.tsx for why it is a band rather than a section. */}
+      <PaintBrands />
+
       <ServicesOverview />
 
       {/* The band that ties the trades above to the work below, and the third
